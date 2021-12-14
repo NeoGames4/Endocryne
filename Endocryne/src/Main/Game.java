@@ -17,8 +17,8 @@ public class Game {
 	
 	int blockSize = 64;
 	
-	int minBlocksX;
-	int maxBlocksX;
+	int minBlocksX = 0;
+	int maxBlocksX = 0;
 	
 	public Game() {
 		try {
@@ -31,16 +31,45 @@ public class Game {
 			Image hit = null;
 			standardPlayerImageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
 		} catch(Exception e) {}
-		player = new Player(0, 0, 100, 10, standardPlayerImageSet);
-		players.add(player);
+		blocks.add(new Block(0, 0, Blocks.GRAS));
 		for(int i = 0; i * blockSize<frame.getWidth(); i++) {
-			blocks.add(new Block(i, getNextBlockPositionY(blocks.size() > 0 ? blocks.get(blocks.size()-1).y : 0), Blocks.GRAS));
+			generateNewBlock(1);
+		}
+		float spawnX = frame.getWidth() / blockSize / 2;
+		player = new Player(spawnX, getGroundHeight(spawnX), 100, 10, standardPlayerImageSet);
+		players.add(player);
+	}
+	
+	private void generateNewBlock(int direction) {
+		if(direction >= 0) { // right
+			int y = blocks.get(blocks.size()-1).y;
+			if(blocks.size() > 3) {
+				boolean equal = true;
+				for(int i = blocks.size()-3; i<blocks.size(); i++) {
+					if(blocks.get(i).y != y) { equal = false; break; }
+				}
+				double rand = Math.random();
+				if(equal) y += rand < 0.1 ? 1 : rand < 0.2 ? -1 : 0;
+			} if(y < 0) y = 0;
+			blocks.add(new Block(blocks.get(blocks.size()-1).x+1, y, Blocks.GRAS));
+			maxBlocksX++;
+		} else { // left
+			int y = blocks.get(0).y;
+			if(blocks.size() > 3) {
+				boolean equal = true;
+				for(int i = 0; i<3; i++) {
+					if(blocks.get(i).y != y) { equal = false; break; }
+				}
+				double rand = Math.random();
+				if(equal) y += rand < 0.1 ? 1 : rand < 0.2 ? -1 : 0;
+			} if(y < 0) y = 0;
+			blocks.add(0, new Block(blocks.get(0).x-1, y, Blocks.GRAS));
+			minBlocksX--;
 		}
 	}
 	
-	private int getNextBlockPositionY(int previousY) {
-		double rand = Math.random();
-		return rand < 0.08 ? previousY+1 : rand < 0.16 ? Math.max(previousY-1, 0) : previousY;
+	public int getGroundHeight(float x) {
+		return blocks.get(Math.abs(minBlocksX) + (int)x).y+1;
 	}
 
 }
