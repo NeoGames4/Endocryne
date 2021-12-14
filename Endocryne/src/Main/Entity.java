@@ -4,6 +4,7 @@ public class Entity {
 	
 	float x;
 	float y;
+	float vy = 0;
 	
 	final public EntityImageSet imageSet;
 	
