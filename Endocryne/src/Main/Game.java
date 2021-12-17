@@ -31,15 +31,12 @@ public class Game {
 			Image hit = null;
 			standardPlayerImageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
 		} catch(Exception e) {}
-		blocks.add(new Block(0, 0, Blocks.GRAS));
-		for(int i = 0; i * blockSize<frame.getWidth(); i++) {
-			generateNewBlock(1);
-		}
+		blocks.add(new Block(0, (int)(Math.random() * 4), Blocks.GRAS));
 		player = new Player(0, getGroundHeight(0), 100, 10, standardPlayerImageSet);
 		players.add(player);
 	}
 	
-	private void generateNewBlock(int direction) {
+	public void generateNewBlock(int direction) {
 		if(direction >= 0) { // right
 			int y = blocks.get(blocks.size()-1).y;
 			if(blocks.size() > 3) {
@@ -68,6 +65,7 @@ public class Game {
 	}
 	
 	public int getGroundHeight(float x) {
+		if(x < 0) x--;
 		return blocks.get(Math.abs(minBlocksX) + (int)x).y+1;
 	}
 
