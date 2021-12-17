@@ -1,9 +1,9 @@
 package Main;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Toolkit;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -43,11 +43,14 @@ public class GameFrame extends JFrame {
 	
 	public void update() {
 		Player player = game.player;
-		if((Controls.wDown || Controls.spaceDown) && player.y == game.getGroundHeight(player.x)) {
+		System.out.println("Here");
+		System.out.println("Here, ground height: " + ((int)(player.x-player.hitBoxWidth/2) == (int)(player.x+player.hitBoxWidth/2) ? game.getGroundHeight(player.x) : Math.max(game.getGroundHeight(player.x-player.hitBoxWidth/2), game.getGroundHeight(player.x+player.hitBoxWidth/2))));
+		if((Controls.wDown || Controls.spaceDown) && player.y == ((int)(player.x-player.hitBoxWidth/2) == (int)(player.x+player.hitBoxWidth/2) ? game.getGroundHeight(player.x) : Math.max(game.getGroundHeight(player.x-player.hitBoxWidth/2), game.getGroundHeight(player.x+player.hitBoxWidth/2)))) {
 			player.vy = player.jumpSpeed;
 		}
 		for(Player p : game.players) {
-			if(p.y + p.vy < game.getGroundHeight(p.x)) p.vy = game.getGroundHeight(p.x) - p.y;
+			float groundHeight = (int)(p.x-p.hitBoxWidth/2) == (int)(p.x+p.hitBoxWidth/2) ? game.getGroundHeight(p.x) : Math.max(game.getGroundHeight(p.x-p.hitBoxWidth/2), game.getGroundHeight(p.x+p.hitBoxWidth/2));
+			if(p.y + p.vy < groundHeight) p.vy = groundHeight - p.y;
 			p.y += p.vy;
 			p.vy += gravity;
 		}
@@ -68,19 +71,29 @@ public class GameFrame extends JFrame {
 			g2.setColor(new Color(200, 200, 255)); // Sky color
 			g2.fillRect(0, 0, getWidth(), getHeight());
 			
+			int playerX = (int)(game.player.x*game.blockSize);
+			int playerY = (int)(game.player.y*game.blockSize);
+			
+			// Block generation
+			while(game.maxBlocksX < (playerX+getWidth()/2)/game.blockSize) {
+				game.generateNewBlock(1);
+			}
+			while(game.minBlocksX > (playerX-getWidth()/2-game.blockSize)/game.blockSize) {
+				game.generateNewBlock(-1);
+			}
+			
 			try { // Blocks
-				int playerX = (int)(game.player.x*game.blockSize);
-				int playerY = (int)(game.player.y*game.blockSize);
-				for(Block block : game.blocks) {
+				for(int i = 0; i<game.blocks.size(); i++) {
+					Block block = game.blocks.get(i);
 					switch(block.type) {
 						case DIRT: break;
 						default:
 							g2.setColor(new Color(40, 140, 40));
 					}
-					g2.fillRect(block.x * game.blockSize - playerX, getHeight() - (block.y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
+					g2.fillRect(block.x * game.blockSize - playerX + getWidth()/2, getHeight() - (block.y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
 					for(int y = block.y-1; y>=0; y--) {
 						g2.setColor(new Color(80, 50, 40));
-						g2.fillRect(block.x * game.blockSize, getHeight() - (y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
+						g2.fillRect(block.x * game.blockSize - playerX + getWidth()/2, getHeight() - (y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
 					}
 				}
 			} catch(Exception e) {} // Ignored
@@ -102,6 +115,12 @@ public class GameFrame extends JFrame {
 					}
 				}
 			} catch(Exception e) {} // Ignored
+			
+			// Info
+			g2.setColor(Color.white);
+			g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, g2.getFont().getSize()));
+			g2.drawString("x: " + game.player.x, 10, 20);
+			g2.drawString("y: " + game.player.y, 10, 20 + g2.getFont().getSize());
 		}
 		
 	}
