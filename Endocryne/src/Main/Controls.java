@@ -9,6 +9,7 @@ public class Controls implements KeyListener {
 	public static boolean sDown = false;
 	public static boolean aDown = false;
 	public static boolean dDown = false;
+	public static boolean spaceDown = false;
 	
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -21,6 +22,7 @@ public class Controls implements KeyListener {
 			case KeyEvent.VK_S: sDown = true; break;
 			case KeyEvent.VK_A: aDown = true; break;
 			case KeyEvent.VK_D: dDown = true; break;
+			case KeyEvent.VK_SPACE: spaceDown = true; break;
 		}
 	}
   
@@ -31,6 +33,7 @@ public class Controls implements KeyListener {
 			case KeyEvent.VK_S: sDown = false; break;
 			case KeyEvent.VK_A: aDown = false; break;
 			case KeyEvent.VK_D: dDown = false; break;
+			case KeyEvent.VK_SPACE: spaceDown = false; break;
 		}
 	}
 
