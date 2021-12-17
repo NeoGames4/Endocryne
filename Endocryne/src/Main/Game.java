@@ -35,8 +35,7 @@ public class Game {
 		for(int i = 0; i * blockSize<frame.getWidth(); i++) {
 			generateNewBlock(1);
 		}
-		float spawnX = frame.getWidth() / blockSize / 2;
-		player = new Player(spawnX, getGroundHeight(spawnX), 100, 10, standardPlayerImageSet);
+		player = new Player(0, getGroundHeight(0), 100, 10, standardPlayerImageSet);
 		players.add(player);
 	}
 	
