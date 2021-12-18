@@ -20,6 +20,8 @@ public class Game {
 	int minBlocksX = 0;
 	int maxBlocksX = 0;
 	
+	int maxWorldHeight = (int)(frame.getHeight()/blockSize * 3d/4d);
+	
 	public Game() {
 		try {
 			Image defaultImage = null;
@@ -31,7 +33,7 @@ public class Game {
 			Image hit = null;
 			standardPlayerImageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
 		} catch(Exception e) {}
-		blocks.add(new Block(0, (int)(Math.random() * 4), Blocks.GRAS));
+		blocks.add(new Block(0, (int)(Math.random() * maxWorldHeight/2), Blocks.GRAS));
 		player = new Player(0, getGroundHeight(0), 100, 10, standardPlayerImageSet);
 		players.add(player);
 	}
@@ -46,7 +48,7 @@ public class Game {
 				}
 				double rand = Math.random();
 				if(equal) y += rand < 0.1 ? 1 : rand < 0.2 ? -1 : 0;
-			} if(y < 0) y = 0;
+			} if(y < 0) y = 0; else if(y > maxWorldHeight) y = maxWorldHeight;
 			blocks.add(new Block(blocks.get(blocks.size()-1).x+1, y, Blocks.GRAS));
 			maxBlocksX++;
 		} else { // left
@@ -58,13 +60,13 @@ public class Game {
 				}
 				double rand = Math.random();
 				if(equal) y += rand < 0.1 ? 1 : rand < 0.2 ? -1 : 0;
-			} if(y < 0) y = 0;
+			} if(y < 0) y = 0; else if(y > maxWorldHeight) y = maxWorldHeight;
 			blocks.add(0, new Block(blocks.get(0).x-1, y, Blocks.GRAS));
 			minBlocksX--;
 		}
 	}
 	
-	public int getGroundHeight(float x) {
+	public int getGroundHeight(double x) {
 		if(x < 0) x--;
 		return blocks.get(Math.abs(minBlocksX) + (int)x).y+1;
 	}

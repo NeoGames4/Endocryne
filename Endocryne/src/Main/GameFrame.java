@@ -4,9 +4,12 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
+import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -15,8 +18,12 @@ public class GameFrame extends JFrame {
 	public Stage stage = new Stage();
 	
 	public long fps = 60;
+	public float currentFps = 0;
 	
 	public final Game game;
+	
+	long ticks = 0;
+	long lastFrameTime;
 	
 	public GameFrame(Game game, int width, int height) {
 		this.game = game;
@@ -29,6 +36,8 @@ public class GameFrame extends JFrame {
 		setContentPane(stage);
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		lastFrameTime = System.currentTimeMillis();
 		
 		Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable() {
 			@Override
@@ -43,23 +52,29 @@ public class GameFrame extends JFrame {
 	
 	public void update() {
 		Player player = game.player;
-		System.out.println("Here");
-		System.out.println("Here, ground height: " + ((int)(player.x-player.hitBoxWidth/2) == (int)(player.x+player.hitBoxWidth/2) ? game.getGroundHeight(player.x) : Math.max(game.getGroundHeight(player.x-player.hitBoxWidth/2), game.getGroundHeight(player.x+player.hitBoxWidth/2))));
-		if((Controls.wDown || Controls.spaceDown) && player.y == ((int)(player.x-player.hitBoxWidth/2) == (int)(player.x+player.hitBoxWidth/2) ? game.getGroundHeight(player.x) : Math.max(game.getGroundHeight(player.x-player.hitBoxWidth/2), game.getGroundHeight(player.x+player.hitBoxWidth/2)))) {
+		if((Controls.wDown || Controls.spaceDown) && player.y == ((int)(player.x-player.hitBoxWidth/2d/game.blockSize) == (int)(player.x+player.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(player.x) : Math.max(game.getGroundHeight(player.x-player.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(player.x+player.hitBoxWidth/2d/game.blockSize)))) {
 			player.vy = player.jumpSpeed;
 		}
 		for(Player p : game.players) {
-			float groundHeight = (int)(p.x-p.hitBoxWidth/2) == (int)(p.x+p.hitBoxWidth/2) ? game.getGroundHeight(p.x) : Math.max(game.getGroundHeight(p.x-p.hitBoxWidth/2), game.getGroundHeight(p.x+p.hitBoxWidth/2));
+			float groundHeight = (int)(p.x-p.hitBoxWidth/2d/game.blockSize) == (int)(p.x+p.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(p.x) : Math.max(game.getGroundHeight(p.x-p.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(p.x+p.hitBoxWidth/2d/game.blockSize));
 			if(p.y + p.vy < groundHeight) p.vy = groundHeight - p.y;
 			p.y += p.vy;
 			p.vy += gravity;
 		}
 		if(Controls.dDown) {
-			player.x += player.movementSpeed;
+			if(game.getGroundHeight(player.x+1) > player.y && (int)(player.x + player.movementSpeed + player.hitBoxWidth/2d/game.blockSize) != (int)(player.x)) {
+				int correction = player.x+1 < 0 ? 0 : 1;
+				player.x += (int)(player.x+correction) - (player.x + player.hitBoxWidth/2d/game.blockSize) - 0.0001;
+			}
+			else player.x += player.movementSpeed;
 		}
 		if(Controls.aDown) {
-			player.x -= player.movementSpeed;
-		}
+			if(game.getGroundHeight(player.x-1) > player.y && (int)(player.x - player.movementSpeed - player.hitBoxWidth/2d/game.blockSize) != (int)(player.x)) {
+				int correction = player.x-1 < 0 ? 1 : 0;
+				player.x += (int)(player.x-correction) - (player.x - player.hitBoxWidth/2d/game.blockSize) + 0.0001;
+			}
+			else player.x -= player.movementSpeed;
+		} ticks++;
 	}
 	
 	public class Stage extends JPanel {
@@ -116,11 +131,24 @@ public class GameFrame extends JFrame {
 				}
 			} catch(Exception e) {} // Ignored
 			
+			// HP
+			try {
+				Image heartImage = ImageIO.read(new File("./rsc/heart.png"));
+				for(int y = 0; y<(int)(game.player.hp/5)+1; y++) {
+					for(int i = 0; i<Math.min(game.player.hp - y*5, 5); i++) {
+						g2.drawImage(heartImage, (int)(getWidth()/2d + Math.min(game.player.hp - y*5d, 5d)/2d * (double)heartImage.getWidth(null) - i*heartImage.getWidth(null)), 10 * (y+1), null);
+					}
+				}
+			} catch(Exception e) { e.printStackTrace(); } // Ignored
+			
 			// Info
 			g2.setColor(Color.white);
 			g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, g2.getFont().getSize()));
 			g2.drawString("x: " + game.player.x, 10, 20);
 			g2.drawString("y: " + game.player.y, 10, 20 + g2.getFont().getSize());
+			if(ticks % 20 == 0) currentFps = 1f / ((System.currentTimeMillis() - lastFrameTime) / 1000f);
+			lastFrameTime = System.currentTimeMillis();
+			g2.drawString("fps: " + currentFps + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
 		}
 		
 	}
