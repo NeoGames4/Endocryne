@@ -2,7 +2,13 @@ package Main;
 
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
 
 public class Game {
 	
@@ -24,15 +30,15 @@ public class Game {
 	
 	public Game() {
 		try {
-			Image defaultImage = null;
-			Image leftOne = null;
-			Image rightOne = null;
-			Image leftTwo = null;
-			Image rightTwo = null;
-			Image jump = null;
+			Image defaultImage = ImageIO.read(new File("./rsc/default.png"));
+			Image leftOne = flipHorizontally(ImageIO.read(new File("./rsc/one.png")));
+			Image rightOne = ImageIO.read(new File("./rsc/one.png"));
+			Image leftTwo = flipHorizontally(ImageIO.read(new File("./rsc/two.png")));
+			Image rightTwo = ImageIO.read(new File("./rsc/two.png"));
+			Image jump = ImageIO.read(new File("./rsc/jump.png"));
 			Image hit = null;
 			standardPlayerImageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
-		} catch(Exception e) {}
+		} catch(Exception e) { e.printStackTrace(); }
 		blocks.add(new Block(0, (int)(Math.random() * maxWorldHeight/2), Blocks.GRAS));
 		player = new Player(0, getGroundHeight(0), 100, 10, standardPlayerImageSet);
 		players.add(player);
@@ -69,6 +75,12 @@ public class Game {
 	public int getGroundHeight(double x) {
 		if(x < 0) x--;
 		return blocks.get(Math.abs(minBlocksX) + (int)x).y+1;
+	}
+	
+	public static Image flipHorizontally(BufferedImage img) {
+		AffineTransform transform = AffineTransform.getScaleInstance(-1, 1);
+		transform.translate(-img.getWidth(null), 0);
+		return new AffineTransformOp(transform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR).filter(img, null);
 	}
 
 }

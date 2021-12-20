@@ -5,11 +5,9 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -52,7 +50,7 @@ public class GameFrame extends JFrame {
 	
 	public void update() {
 		Player player = game.player;
-		if((Controls.wDown || Controls.spaceDown) && player.y == ((int)(player.x-player.hitBoxWidth/2d/game.blockSize) == (int)(player.x+player.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(player.x) : Math.max(game.getGroundHeight(player.x-player.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(player.x+player.hitBoxWidth/2d/game.blockSize)))) {
+		if((Controls.wDown || Controls.spaceDown) && (player.y == ((int)(player.x-player.hitBoxWidth/2d/game.blockSize) == (int)(player.x+player.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(player.x) : Math.max(game.getGroundHeight(player.x-player.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(player.x+player.hitBoxWidth/2d/game.blockSize))))) {
 			player.vy = player.jumpSpeed;
 		}
 		for(Player p : game.players) {
@@ -98,7 +96,8 @@ public class GameFrame extends JFrame {
 			}
 			
 			try { // Blocks
-				for(int i = 0; i<game.blocks.size(); i++) {
+				// player.x - getWidth()
+				for(int i = Math.max((int)(game.player.x - getWidth()/2/game.blockSize) + Math.abs(game.minBlocksX) - 2, 0); i<Math.min((int)(game.player.x - getWidth()/2/game.blockSize)+Math.abs(game.minBlocksX)+getWidth()/game.blockSize+2, game.blocks.size()); i++) {
 					Block block = game.blocks.get(i);
 					switch(block.type) {
 						case DIRT: break;
@@ -114,6 +113,15 @@ public class GameFrame extends JFrame {
 			} catch(Exception e) {} // Ignored
 			
 			// Player
+			try {
+				Image img = null;
+				EntityImageSet imageSet = game.player.imageSet;
+				if(Controls.aDown) img = ticks % 16 < 8 ? imageSet.leftOne : imageSet.leftTwo;
+				else if(Controls.dDown) img = ticks % 16 < 8 ? imageSet.rightOne : imageSet.rightTwo;
+				else if(game.player.y > game.getGroundHeight(game.player.x) || Controls.spaceDown || Controls.wDown) img = imageSet.jump;
+				else img = imageSet.defaultImage;
+				g2.drawImage(img, (int)(getWidth()/2) - img.getWidth(null)/2, getHeight() - (int)(game.player.y*game.blockSize) - img.getHeight(null), null);
+			} catch(Exception e) { e.printStackTrace(); }
 			g2.setColor(Color.MAGENTA);
 			g2.drawRect((int)(getWidth()/2) - game.player.hitBoxWidth/2, getHeight() - (int)(game.player.y*game.blockSize) - game.player.hitBoxHeight, game.player.hitBoxWidth, game.player.hitBoxHeight);
 			g2.setColor(Color.GREEN);
@@ -131,7 +139,7 @@ public class GameFrame extends JFrame {
 				}
 			} catch(Exception e) {} // Ignored
 			
-			// HP
+			/*// HP
 			try {
 				Image heartImage = ImageIO.read(new File("./rsc/heart.png"));
 				for(int y = 0; y<(int)(game.player.hp/5)+1; y++) {
@@ -139,7 +147,7 @@ public class GameFrame extends JFrame {
 						g2.drawImage(heartImage, (int)(getWidth()/2d + Math.min(game.player.hp - y*5d, 5d)/2d * (double)heartImage.getWidth(null) - i*heartImage.getWidth(null)), 10 * (y+1), null);
 					}
 				}
-			} catch(Exception e) { e.printStackTrace(); } // Ignored
+			} catch(Exception e) { e.printStackTrace(); } // Ignored*/
 			
 			// Info
 			g2.setColor(Color.white);
