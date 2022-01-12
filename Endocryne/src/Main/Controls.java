@@ -3,12 +3,32 @@ package Main;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+/**
+ * Eine Klasse zur Verwaltung der Tastenschläge.
+ * @author Mika Thein
+ * @version 1.0
+ */
 public class Controls implements KeyListener {
 	
+	/**
+	 * Wahr, wenn die 'w'-Taste gedrückt wird.
+	 */
 	public static boolean wDown = false;
+	/**
+	 * Wahr, wenn die 's'-Taste gedrückt wird.
+	 */
 	public static boolean sDown = false;
+	/**
+	 * Wahr, wenn die 'a'-Taste gedrückt wird.
+	 */
 	public static boolean aDown = false;
+	/**
+	 * Wahr, wenn die 'd'-Taste gedrückt wird.
+	 */
 	public static boolean dDown = false;
+	/**
+	 * Wahr, wenn die ' '-Taste gedrückt wird.
+	 */
 	public static boolean spaceDown = false;
 	
 	@Override

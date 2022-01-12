@@ -11,18 +11,47 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+/**
+ * Die Klasse, die das Fenster zum Spiel darstellt.
+ * @author Mika Thein
+ * @version 1.0
+ */
 public class GameFrame extends JFrame {
 	
+	/**
+	 * Das ContentPane (das tatsächliche Grafikmodul, auf welchem gezeichnet wird).
+	 */
 	public Stage stage = new Stage();
 	
+	/**
+	 * Bilder pro Sekunde.
+	 */
 	public long fps = 60;
+	/**
+	 * Errechneten Bilder pro Sekunde.
+	 */
 	public float currentFps = 0;
 	
+	/**
+	 * Das zugehörige Spiel.
+	 */
 	public final Game game;
 	
-	long ticks = 0;
-	long lastFrameTime;
+	/**
+	 * Die Ticks seit dem Spielstart.
+	 */
+	public long ticks = 0;
+	/**
+	 * Die Zeit, die bei dem letzten Tick gemessen worden ist (zur Berechung von {@link #currentFps}).
+	 */
+	private long lastFrameTime;
 	
+	/**
+	 * Erstellt einen neuen Frame.
+	 * @param game das zugehörige Spiel
+	 * @param width die Fensterweite in Pixeln
+	 * @param height die Fensterhöhe in Pixeln
+	 */
 	public GameFrame(Game game, int width, int height) {
 		this.game = game;
 		setBounds(0, 0, width, height);
@@ -46,8 +75,14 @@ public class GameFrame extends JFrame {
 		}, 100, (int)(1d/fps * 1000d), TimeUnit.MILLISECONDS);
 	}
 	
+	/**
+	 * Die Gravitationsbeschleunigung in Blöcken pro Tick.
+	 */
 	public final float gravity = -0.01f;
 	
+	/**
+	 * Durchläuft alle Entities und aktualisiert ihre Positionen (im Hinblick auf Gravitation und Steuerung).
+	 */
 	public void update() {
 		Player player = game.player;
 		if((Controls.wDown || Controls.spaceDown) && (player.y == ((int)(player.x-player.hitBoxWidth/2d/game.blockSize) == (int)(player.x+player.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(player.x) : Math.max(game.getGroundHeight(player.x-player.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(player.x+player.hitBoxWidth/2d/game.blockSize))))) {
@@ -75,6 +110,11 @@ public class GameFrame extends JFrame {
 		} ticks++;
 	}
 	
+	/**
+	 * Das ContentPane des {@link #GameFrame()}s, auf welchem tatsächlich gezeichnet wird.
+	 * @author Mika Thein
+	 * @version 1.0
+	 */
 	public class Stage extends JPanel {
 		
 		@Override
@@ -157,6 +197,10 @@ public class GameFrame extends JFrame {
 			if(ticks % 20 == 0) currentFps = 1f / ((System.currentTimeMillis() - lastFrameTime) / 1000f);
 			lastFrameTime = System.currentTimeMillis();
 			g2.drawString("fps: " + currentFps + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
+			/*if(Launcher.DEBUG) {
+				g2.drawString("Last hit: " + (System.currentTimeMillis() - player) + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
+				g2.drawString("Last damage: " + currentFps + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
+			}*/
 		}
 		
 	}
