@@ -20,24 +20,20 @@ import javax.imageio.ImageIO;
 public class Game {
 	
 	/**
-	 * Die zugehörige Frame-Klasse (welche das Spiel darstellt).
+	 * Die zugehï¿½rige Frame-Klasse (welche das Spiel darstellt).
 	 */
 	public final GameFrame frame = new GameFrame(this, (int)(Toolkit.getDefaultToolkit().getScreenSize().width/1.2), (int)(Toolkit.getDefaultToolkit().getScreenSize().height/1.2));
 	
 	/**
-	 * Alle Spieler auf der Karte.
+	 * Alle Entities auf der Karte.
 	 */
-	ArrayList<Player> players = new ArrayList<>();
+	ArrayList<Entity> entities = new ArrayList<>();
 	/**
 	 * Der Spieler.
 	 */
 	Player player;
 	/**
-	 * Die Monster.
-	 */
-	ArrayList<Mob> mobs = new ArrayList<>();
-	/**
-	 * Die geladenen Blöcke.
+	 * Die geladenen Blï¿½cke.
 	 */
 	ArrayList<Block> blocks = new ArrayList<>();
 	
@@ -47,21 +43,26 @@ public class Game {
 	private EntityImageSet standardPlayerImageSet;
 	
 	/**
-	 * Die Darstellungsgröße der Blöcke in Pixeln.
+	 * Die Darstellungsgrï¿½ï¿½e der Blï¿½cke in Pixeln.
 	 */
 	int blockSize = 64;
 	
 	/**
-	 * Die Anzahl an geladenen Blöcken mit x < 0.
+	 * Die Anzahl an geladenen Blï¿½cken mit x < 0.
 	 */
 	int minBlocksX = 0;
 	/**
-	 * Die Anzahl an geladenen Blöcken mit x > 0.
+	 * Die Anzahl an geladenen Blï¿½cken mit x > 0.
 	 */
 	int maxBlocksX = 0;
 	
 	/**
-	 * Die maximale Welthöhe in Blöcken.
+	 * Der Zeitpunkt, zu welchem das letzte Mal eine Welle an Mobs erschaffen worden ist.
+	 */
+	long lastMobWaveSpawned = System.currentTimeMillis();
+	
+	/**
+	 * Die maximale Welthï¿½he in Blï¿½cken.
 	 */
 	int maxWorldHeight = (int)(frame.getHeight()/blockSize * 5d/7d);
 	
@@ -78,11 +79,18 @@ public class Game {
 		} catch(Exception e) { e.printStackTrace(); }
 		blocks.add(new Block(0, (int)(Math.random() * maxWorldHeight/2), Blocks.GRAS));
 		player = new Player(0, getGroundHeight(0), 100, 10, standardPlayerImageSet);
-		players.add(player);
+		entities.add(player);
 		frame.addMouseListener(new MouseAdapter() {
 			
 			@Override
 			public void mousePressed(MouseEvent e) {
+				int x = (int) (e.getX() - (frame.getWidth()/2));
+				int y = (int) ((frame.getHeight() - player.y*blockSize + player.hitBoxHeight * player.hitHeightRatio) - e.getY());
+				frame.lastMouseClick = new long[] {e.getX(), e.getY(), System.currentTimeMillis()};
+				System.out.println("x: " + x + ", y: " + y);
+				if(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= player.range * blockSize) {
+					System.out.println("Valid");
+				} else System.out.println("Invalid");
 			}
 			
 		});
@@ -93,13 +101,13 @@ public class Game {
 	 * <p>Falls {@code}direction{@code} kleiner als 0, so wird ein neuer Block
 	 * im negativen x-Bereich ("links") erstellt.
 	 * Andernfalls dementsprechend im positiven x-Bereich ("rechts") erstellt.
-	 * <p>Der neu-erstellte Block wird stets an den Anfang oder an das Ende der {@link #blocks}-ArrayList gehängt.
-	 * @param direction ob links oder rechts aller aktuell geladenen Blöcken
+	 * <p>Der neu-erstellte Block wird stets an den Anfang oder an das Ende der {@link #blocks}-ArrayList gehï¿½ngt.
+	 * @param direction ob links oder rechts aller aktuell geladenen Blï¿½cken
 	 */
 	public void generateNewBlock(int direction) {
 		if(direction >= 0) { // right
 			int y = blocks.get(blocks.size()-1).y;
-			if(blocks.size() > 3) {
+			if(blocks.get(blocks.size()-1).x > 2) {
 				boolean equal = true;
 				for(int i = blocks.size()-3; i<blocks.size(); i++) {
 					if(blocks.get(i).y != y) { equal = false; break; }
@@ -111,7 +119,7 @@ public class Game {
 			maxBlocksX++;
 		} else { // left
 			int y = blocks.get(0).y;
-			if(blocks.size() > 3) {
+			if(blocks.get(0).x < -2) {
 				boolean equal = true;
 				for(int i = 0; i<3; i++) {
 					if(blocks.get(i).y != y) { equal = false; break; }
@@ -125,9 +133,9 @@ public class Game {
 	}
 	
 	/**
-	 * Gibt die Bodenhöhe bei der x-Koordinate {@code}x{@code} zurück.
+	 * Gibt die Bodenhï¿½he bei der x-Koordinate {@code}x{@code} zurï¿½ck.
 	 * @param x die x-Koordinate
-	 * @return die Blockhöhe in Blöcken
+	 * @return die Blockhï¿½he in Blï¿½cken
 	 */
 	public int getGroundHeight(double x) {
 		if(x < 0) x--;

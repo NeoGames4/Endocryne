@@ -8,28 +8,28 @@ package Main;
 public class Entity {
 	
 	/**
-	 * Die x-Position in Blöcken.
+	 * Die x-Position in Blï¿½cken.
 	 */
 	public float x;
 	/**
-	 * Die y-Position in Blöcken.
+	 * Die y-Position in Blï¿½cken.
 	 */
 	public float y;
 	/**
-	 * Die horizontale Geschwindigkeit in Blöcken pro Tick.
+	 * Die horizontale Geschwindigkeit in Blï¿½cken pro Tick.
 	 */
 	public float vx = 0;						// FEHLT NOCH!
 	/**
-	 * Die vertikale Geschwindigkeit in Blöcken pro Tick.
+	 * Die vertikale Geschwindigkeit in Blï¿½cken pro Tick.
 	 */
 	public float vy = 0;
 	
 	/**
-	 * Die Startgeschwindigkeit bei einem Sprung in Blöcken pro Tick.
+	 * Die Startgeschwindigkeit bei einem Sprung in Blï¿½cken pro Tick.
 	 */
 	public float jumpSpeed = 0.175f; // > 0
 	/**
-	 * Die Bewegungsgeschwindigkeit in Blöcken pro Tick.
+	 * Die Bewegungsgeschwindigkeit in Blï¿½cken pro Tick.
 	 */
 	public float movementSpeed = 0.1f; // > 0
 	
@@ -43,16 +43,25 @@ public class Entity {
 	 */
 	public float hp;
 	/**
-	 * Die Schadensstärke.
+	 * Die Schadensstï¿½rke.
 	 */
 	public float attackDamage;
+	
+	/**
+	 * Die Reichweite.
+	 */
+	public float range;
+	/**
+	 * Der Anteil der GesamthÃ¶he, von welchem die Range des Entitys beginnt.
+	 */
+	public float hitHeightRatio = 2f/3f;
 	
 	/**
 	 * Die HitBox-Weite in Pixeln.
 	 */
 	public int hitBoxWidth = 40;
 	/**
-	 * Die HitBox-Höhe in Pixeln.
+	 * Die HitBox-Hï¿½he in Pixeln.
 	 */
 	public int hitBoxHeight = 120;
 	
@@ -75,14 +84,15 @@ public class Entity {
 	 * @param x die Start-x-Koordinate
 	 * @param y die Start-y-Koordinate
 	 * @param hp die Lebenspunkte
-	 * @param attackDamage die Schadensstärke
+	 * @param attackDamage die Schadensstï¿½rke
 	 * @param imageSet das {@link #imageSet}
 	 */
-	public Entity(float x, float y, float hp, float attackDamage, EntityImageSet imageSet) {
+	public Entity(float x, float y, float hp, float attackDamage, float range, EntityImageSet imageSet) {
 		this.x = x;
 		this.y = y;
 		this.imageSet = imageSet;
 		this.hp = hp;
+		this.range  = range;
 		this.attackDamage = attackDamage;
 	}
 	
@@ -109,11 +119,11 @@ public class Entity {
 	public class CooldownSet {
 		
 		/**
-		 * Das letzte Mal, als geschlagen worden ist (Zeitpunkt in Millisekunden gemäß {@code System.getCurrentMillis()}).
+		 * Das letzte Mal, als geschlagen worden ist (Zeitpunkt in Millisekunden gemï¿½ï¿½ {@code System.getCurrentMillis()}).
 		 */
 		public long lastTimeHit = 0;
 		/**
-		 * Das letzte Mal, als Schaden genommen worden ist (Zeitpunkt in Millisekunden gemäß {@code System.getCurrentMillis()}).
+		 * Das letzte Mal, als Schaden genommen worden ist (Zeitpunkt in Millisekunden gemï¿½ï¿½ {@code System.getCurrentMillis()}).
 		 */
 		public long lastTimeDamage = 0;
 		

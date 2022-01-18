@@ -5,9 +5,11 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -19,7 +21,7 @@ import javax.swing.JPanel;
 public class GameFrame extends JFrame {
 	
 	/**
-	 * Das ContentPane (das tatsächliche Grafikmodul, auf welchem gezeichnet wird).
+	 * Das ContentPane (das tatsï¿½chliche Grafikmodul, auf welchem gezeichnet wird).
 	 */
 	public Stage stage = new Stage();
 	
@@ -33,7 +35,7 @@ public class GameFrame extends JFrame {
 	public float currentFps = 0;
 	
 	/**
-	 * Das zugehörige Spiel.
+	 * Das zugehï¿½rige Spiel.
 	 */
 	public final Game game;
 	
@@ -45,12 +47,19 @@ public class GameFrame extends JFrame {
 	 * Die Zeit, die bei dem letzten Tick gemessen worden ist (zur Berechung von {@link #currentFps}).
 	 */
 	private long lastFrameTime;
+	/**
+	 * Die Koordinate und der Zeitpunkt des letzten Mausklicks;
+	 * <p>[0] entspricht dabei der x-Koordinate<br>
+	 * [1] entspricht dabei der y-Koordinate<br>
+	 * [2] entspricht dabei dem Zeitpunkt (epoch milliseconds gemÃ¤ÃŸ {@Code System.currentTimeMillis()})
+	 */
+	public long[] lastMouseClick = new long[] {-1, -1, -1};
 	
 	/**
 	 * Erstellt einen neuen Frame.
-	 * @param game das zugehörige Spiel
+	 * @param game das zugehï¿½rige Spiel
 	 * @param width die Fensterweite in Pixeln
-	 * @param height die Fensterhöhe in Pixeln
+	 * @param height die Fensterhï¿½he in Pixeln
 	 */
 	public GameFrame(Game game, int width, int height) {
 		this.game = game;
@@ -76,23 +85,23 @@ public class GameFrame extends JFrame {
 	}
 	
 	/**
-	 * Die Gravitationsbeschleunigung in Blöcken pro Tick.
+	 * Die Gravitationsbeschleunigung in Blï¿½cken pro Tick.
 	 */
 	public final float gravity = -0.01f;
 	
 	/**
-	 * Durchläuft alle Entities und aktualisiert ihre Positionen (im Hinblick auf Gravitation und Steuerung).
+	 * Durchlï¿½uft alle Entities und aktualisiert ihre Positionen (im Hinblick auf Gravitation und Steuerung).
 	 */
 	public void update() {
 		Player player = game.player;
 		if((Controls.wDown || Controls.spaceDown) && (player.y == ((int)(player.x-player.hitBoxWidth/2d/game.blockSize) == (int)(player.x+player.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(player.x) : Math.max(game.getGroundHeight(player.x-player.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(player.x+player.hitBoxWidth/2d/game.blockSize))))) {
 			player.vy = player.jumpSpeed;
 		}
-		for(Player p : game.players) {
-			float groundHeight = (int)(p.x-p.hitBoxWidth/2d/game.blockSize) == (int)(p.x+p.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(p.x) : Math.max(game.getGroundHeight(p.x-p.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(p.x+p.hitBoxWidth/2d/game.blockSize));
-			if(p.y + p.vy < groundHeight) p.vy = groundHeight - p.y;
-			p.y += p.vy;
-			p.vy += gravity;
+		for(Entity e : game.entities) {
+			float groundHeight = (int)(e.x-e.hitBoxWidth/2d/game.blockSize) == (int)(e.x+e.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(e.x) : Math.max(game.getGroundHeight(e.x-e.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(e.x+e.hitBoxWidth/2d/game.blockSize));
+			if(e.y + e.vy < groundHeight) e.vy = groundHeight - e.y;
+			e.y += e.vy;
+			e.vy += gravity;
 		}
 		if(Controls.dDown) {
 			if(game.getGroundHeight(player.x+1) > player.y && (int)(player.x + player.movementSpeed + player.hitBoxWidth/2d/game.blockSize) != (int)(player.x)) {
@@ -108,10 +117,31 @@ public class GameFrame extends JFrame {
 			}
 			else player.x -= player.movementSpeed;
 		} ticks++;
+		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 20000) {
+			int amount = 4;
+			for(int i = 0; i<amount; i++) {
+				try {
+					Image defaultImage = ImageIO.read(new File("./rsc/default.png"));
+					Image leftOne = Game.flipHorizontally(ImageIO.read(new File("./rsc/one.png")));
+					Image rightOne = ImageIO.read(new File("./rsc/one.png"));
+					Image leftTwo = Game.flipHorizontally(ImageIO.read(new File("./rsc/two.png")));
+					Image rightTwo = ImageIO.read(new File("./rsc/two.png"));
+					Image jump = ImageIO.read(new File("./rsc/jump.png"));
+					Image hit = null;
+					EntityImageSet imageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
+					float x = player.x + getWidth()/2/game.blockSize + 1 + Math.max((float)i/10f * 1f, 1);
+					Mob mob = new Mob(x, game.getGroundHeight(x), 40, 12, 1.2f, imageSet);
+					game.entities.add(mob);
+					System.out.println("At: " + x);
+				} catch(Exception e) { e.printStackTrace(); }
+			}
+			game.lastMobWaveSpawned = System.currentTimeMillis();
+			System.out.println("New wave spawned!");
+		}
 	}
 	
 	/**
-	 * Das ContentPane des {@link #GameFrame()}s, auf welchem tatsächlich gezeichnet wird.
+	 * Das ContentPane des {@link #GameFrame()}s, auf welchem tatsï¿½chlich gezeichnet wird.
 	 * @author Mika Thein
 	 * @version 1.0
 	 */
@@ -128,10 +158,10 @@ public class GameFrame extends JFrame {
 			int playerY = (int)(game.player.y*game.blockSize);
 			
 			// Block generation
-			while(game.maxBlocksX < (playerX+getWidth()/2)/game.blockSize) {
+			while(game.maxBlocksX < (playerX+getWidth()/2)/game.blockSize + 3) {
 				game.generateNewBlock(1);
 			}
-			while(game.minBlocksX > (playerX-getWidth()/2-game.blockSize)/game.blockSize) {
+			while(game.minBlocksX > (playerX-getWidth()/2-game.blockSize)/game.blockSize - 3) {
 				game.generateNewBlock(-1);
 			}
 			
@@ -162,20 +192,40 @@ public class GameFrame extends JFrame {
 				else img = imageSet.defaultImage;
 				g2.drawImage(img, (int)(getWidth()/2) - img.getWidth(null)/2, getHeight() - (int)(game.player.y*game.blockSize) - img.getHeight(null), null);
 			} catch(Exception e) { e.printStackTrace(); }
-			g2.setColor(Color.MAGENTA);
-			g2.drawRect((int)(getWidth()/2) - game.player.hitBoxWidth/2, getHeight() - (int)(game.player.y*game.blockSize) - game.player.hitBoxHeight, game.player.hitBoxWidth, game.player.hitBoxHeight);
-			g2.setColor(Color.GREEN);
-			g2.fillOval((int)(getWidth()/2) - 2, getHeight() - (int)(game.player.y*game.blockSize) - 2, 4, 4);
+			if(Launcher.DEBUG) {
+				g2.setColor(Color.MAGENTA);
+				g2.drawRect((int)(getWidth()/2) - game.player.hitBoxWidth/2, getHeight() - (int)(game.player.y*game.blockSize) - game.player.hitBoxHeight, game.player.hitBoxWidth, game.player.hitBoxHeight);
+				g2.setColor(Color.GREEN);
+				g2.fillOval((int)(getWidth()/2) - 2, getHeight() - (int)(game.player.y*game.blockSize) - 2, 4, 4);
+				g2.setColor(Color.RED);
+				int xPos = getWidth()/2;
+				int yPos = getHeight() - (int)(game.player.y*game.blockSize + game.player.hitBoxHeight * game.player.hitHeightRatio);
+				/*if(System.currentTimeMillis() - lastMouseClick[2] < 1500) {
+					float x = (float) (lastMouseClick[0] - getWidth()/2);
+					float y = (float) ((getHeight() - game.player.y*game.blockSize + game.player.hitBoxHeight * game.player.hitHeightRatio) - lastMouseClick[1]);
+					g2.drawLine(xPos, yPos, (int)(xPos + game.player.range * game.blockSize * Math.cos(Math.atan(y/x))), (int)(yPos - game.player.range * game.blockSize * Math.sin(Math.atan(y/x))));
+				}*/
+				g2.fillOval(xPos - 2, yPos - 2, 4, 4);
+			}
 			
-			try { // Players
-				for(Player player : game.players) {
-					if(player == game.player) continue;
+			try { // Entities
+				for(Entity entity : game.entities) {
+					if(entity == game.player) continue;
 					if(Launcher.DEBUG) {
 						g2.setColor(Color.MAGENTA);
-						g2.drawRect((int)(player.x*game.blockSize) - player.hitBoxWidth/2, getHeight() - (int)(player.y*game.blockSize) - player.hitBoxHeight, player.hitBoxWidth, player.hitBoxHeight);
+						g2.drawRect((int)(entity.x*game.blockSize) - entity.hitBoxWidth/2, getHeight() - (int)(entity.y*game.blockSize) - entity.hitBoxHeight, entity.hitBoxWidth, entity.hitBoxHeight);
 						g2.setColor(Color.YELLOW);
-						g2.fillOval((int)(player.x*game.blockSize) - 2, getHeight() - (int)(player.y*game.blockSize) - 2, 4, 4);
+						g2.fillOval((int)(entity.x*game.blockSize) - 2, getHeight() - (int)(entity.y*game.blockSize) - 2, 4, 4);
+						g2.setColor(Color.ORANGE);
+						g2.fillOval((int)(getWidth()/2) - 2, getHeight() - (int)(game.player.y*game.blockSize) - game.player.hitBoxHeight/2 - 2, 4, 4);
 					}
+					Image img = null;
+					EntityImageSet imageSet = entity.imageSet;
+					if(entity.vx < 0) img = ticks % 16 < 8 ? imageSet.leftOne : imageSet.leftTwo;
+					else if(entity.vx > 0) img = ticks % 16 < 8 ? imageSet.rightOne : imageSet.rightTwo;
+					else if(entity.y > game.getGroundHeight(entity.x)) img = imageSet.jump;
+					else img = imageSet.defaultImage;
+					g2.drawImage(img, (int)(entity.x*game.blockSize) - img.getWidth(null)/2, getHeight() - (int)(entity.y*game.blockSize) - img.getHeight(null), null);
 				}
 			} catch(Exception e) {} // Ignored
 			
