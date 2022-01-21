@@ -117,7 +117,7 @@ public class GameFrame extends JFrame {
 			}
 			else player.x -= player.movementSpeed;
 		} ticks++;
-		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 20000) {
+		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 30000 && game.entities.size() < 2) {
 			int amount = 4;
 			for(int i = 0; i<amount; i++) {
 				try {
@@ -129,7 +129,7 @@ public class GameFrame extends JFrame {
 					Image jump = ImageIO.read(new File("./rsc/jump.png"));
 					Image hit = null;
 					EntityImageSet imageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
-					float x = player.x + getWidth()/2/game.blockSize + 1 + Math.max((float)i/10f * 1f, 1);
+					float x = player.x + getWidth()/2/game.blockSize + 1 + Math.min((float)i/10f * 1f, 1);
 					Mob mob = new Mob(x, game.getGroundHeight(x), 40, 12, 1.2f, imageSet);
 					game.entities.add(mob);
 					System.out.println("At: " + x);
@@ -154,103 +154,110 @@ public class GameFrame extends JFrame {
 			g2.setColor(new Color(200, 200, 255)); // Sky color
 			g2.fillRect(0, 0, getWidth(), getHeight());
 			
-			int playerX = (int)(game.player.x*game.blockSize);
-			int playerY = (int)(game.player.y*game.blockSize);
-			
-			// Block generation
-			while(game.maxBlocksX < (playerX+getWidth()/2)/game.blockSize + 3) {
-				game.generateNewBlock(1);
-			}
-			while(game.minBlocksX > (playerX-getWidth()/2-game.blockSize)/game.blockSize - 3) {
-				game.generateNewBlock(-1);
-			}
-			
-			try { // Blocks
-				// player.x - getWidth()
-				for(int i = Math.max((int)(game.player.x - getWidth()/2/game.blockSize) + Math.abs(game.minBlocksX) - 2, 0); i<Math.min((int)(game.player.x - getWidth()/2/game.blockSize)+Math.abs(game.minBlocksX)+getWidth()/game.blockSize+2, game.blocks.size()); i++) {
-					Block block = game.blocks.get(i);
-					switch(block.type) {
-						case DIRT: break;
-						default:
-							g2.setColor(new Color(40, 140, 40));
-					}
-					g2.fillRect(block.x * game.blockSize - playerX + getWidth()/2, getHeight() - (block.y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
-					for(int y = block.y-1; y>=0; y--) {
-						g2.setColor(new Color(80, 50, 40));
-						g2.fillRect(block.x * game.blockSize - playerX + getWidth()/2, getHeight() - (y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
-					}
-				}
-			} catch(Exception e) {} // Ignored
-			
-			// Player
 			try {
-				Image img = null;
-				EntityImageSet imageSet = game.player.imageSet;
-				if(Controls.aDown) img = ticks % 16 < 8 ? imageSet.leftOne : imageSet.leftTwo;
-				else if(Controls.dDown) img = ticks % 16 < 8 ? imageSet.rightOne : imageSet.rightTwo;
-				else if(game.player.y > game.getGroundHeight(game.player.x) || Controls.spaceDown || Controls.wDown) img = imageSet.jump;
-				else img = imageSet.defaultImage;
-				g2.drawImage(img, (int)(getWidth()/2) - img.getWidth(null)/2, getHeight() - (int)(game.player.y*game.blockSize) - img.getHeight(null), null);
-			} catch(Exception e) { e.printStackTrace(); }
-			if(Launcher.DEBUG) {
-				g2.setColor(Color.MAGENTA);
-				g2.drawRect((int)(getWidth()/2) - game.player.hitBoxWidth/2, getHeight() - (int)(game.player.y*game.blockSize) - game.player.hitBoxHeight, game.player.hitBoxWidth, game.player.hitBoxHeight);
-				g2.setColor(Color.GREEN);
-				g2.fillOval((int)(getWidth()/2) - 2, getHeight() - (int)(game.player.y*game.blockSize) - 2, 4, 4);
-				g2.setColor(Color.RED);
-				int xPos = getWidth()/2;
-				int yPos = getHeight() - (int)(game.player.y*game.blockSize + game.player.hitBoxHeight * game.player.hitHeightRatio);
-				/*if(System.currentTimeMillis() - lastMouseClick[2] < 1500) {
-					float x = (float) (lastMouseClick[0] - getWidth()/2);
-					float y = (float) ((getHeight() - game.player.y*game.blockSize + game.player.hitBoxHeight * game.player.hitHeightRatio) - lastMouseClick[1]);
-					g2.drawLine(xPos, yPos, (int)(xPos + game.player.range * game.blockSize * Math.cos(Math.atan(y/x))), (int)(yPos - game.player.range * game.blockSize * Math.sin(Math.atan(y/x))));
-				}*/
-				g2.fillOval(xPos - 2, yPos - 2, 4, 4);
-			}
 			
-			try { // Entities
-				for(Entity entity : game.entities) {
-					if(entity == game.player) continue;
-					if(Launcher.DEBUG) {
-						g2.setColor(Color.MAGENTA);
-						g2.drawRect((int)(entity.x*game.blockSize) - entity.hitBoxWidth/2, getHeight() - (int)(entity.y*game.blockSize) - entity.hitBoxHeight, entity.hitBoxWidth, entity.hitBoxHeight);
-						g2.setColor(Color.YELLOW);
-						g2.fillOval((int)(entity.x*game.blockSize) - 2, getHeight() - (int)(entity.y*game.blockSize) - 2, 4, 4);
-						g2.setColor(Color.ORANGE);
-						g2.fillOval((int)(getWidth()/2) - 2, getHeight() - (int)(game.player.y*game.blockSize) - game.player.hitBoxHeight/2 - 2, 4, 4);
+				int playerX = (int)(game.player.x*game.blockSize);
+				int playerY = (int)(game.player.y*game.blockSize);
+				
+				// Block generation
+				while(game.maxBlocksX < (playerX+getWidth()/2)/game.blockSize + 3) {
+					game.generateNewBlock(1);
+				}
+				while(game.minBlocksX > (playerX-getWidth()/2-game.blockSize)/game.blockSize - 3) {
+					game.generateNewBlock(-1);
+				}
+				
+				try { // Blocks
+					// player.x - getWidth()
+					for(int i = Math.max((int)(game.player.x - getWidth()/2/game.blockSize) + Math.abs(game.minBlocksX) - 2, 0); i<Math.min((int)(game.player.x - getWidth()/2/game.blockSize)+Math.abs(game.minBlocksX)+getWidth()/game.blockSize+2, game.blocks.size()); i++) {
+						Block block = game.blocks.get(i);
+						switch(block.type) {
+							case DIRT: break;
+							default:
+								g2.setColor(new Color(40, 140, 40));
+						}
+						g2.fillRect(block.x * game.blockSize - playerX + getWidth()/2, getHeight() - (block.y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
+						for(int y = block.y-1; y>=0; y--) {
+							g2.setColor(new Color(80, 50, 40));
+							g2.fillRect(block.x * game.blockSize - playerX + getWidth()/2, getHeight() - (y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
+						}
 					}
+				} catch(Exception e) {} // Ignored
+				
+				// Player
+				try {
 					Image img = null;
-					EntityImageSet imageSet = entity.imageSet;
-					if(entity.vx < 0) img = ticks % 16 < 8 ? imageSet.leftOne : imageSet.leftTwo;
-					else if(entity.vx > 0) img = ticks % 16 < 8 ? imageSet.rightOne : imageSet.rightTwo;
-					else if(entity.y > game.getGroundHeight(entity.x)) img = imageSet.jump;
+					EntityImageSet imageSet = game.player.imageSet;
+					if(Controls.aDown) img = ticks % 16 < 8 ? imageSet.leftOne : imageSet.leftTwo;
+					else if(Controls.dDown) img = ticks % 16 < 8 ? imageSet.rightOne : imageSet.rightTwo;
+					else if(game.player.y > game.getGroundHeight(game.player.x) || Controls.spaceDown || Controls.wDown) img = imageSet.jump;
 					else img = imageSet.defaultImage;
-					g2.drawImage(img, (int)(entity.x*game.blockSize) - img.getWidth(null)/2, getHeight() - (int)(entity.y*game.blockSize) - img.getHeight(null), null);
+					g2.drawImage(img, (int)(getWidth()/2) - img.getWidth(null)/2, getHeight() - (int)(game.player.y*game.blockSize) - img.getHeight(null), null);
+				} catch(Exception e) { e.printStackTrace(); }
+				if(Launcher.DEBUG) {
+					g2.setColor(Color.MAGENTA);
+					g2.drawRect((int)(getWidth()/2) - game.player.hitBoxWidth/2, getHeight() - (int)(game.player.y*game.blockSize) - game.player.hitBoxHeight, game.player.hitBoxWidth, game.player.hitBoxHeight);
+					g2.setColor(Color.GREEN);
+					g2.fillOval((int)(getWidth()/2) - 2, getHeight() - (int)(game.player.y*game.blockSize) - 2, 4, 4);
+					g2.setColor(Color.RED);
+					int xPos = getWidth()/2;
+					int yPos = getHeight() - (int)(game.player.y*game.blockSize + game.player.hitBoxHeight * game.player.hitHeightRatio);
+					/*if(System.currentTimeMillis() - lastMouseClick[2] < 1500) {
+						float x = (float) (lastMouseClick[0] - getWidth()/2);
+						float y = (float) ((getHeight() - game.player.y*game.blockSize + game.player.hitBoxHeight * game.player.hitHeightRatio) - lastMouseClick[1]);
+						g2.drawLine(xPos, yPos, (int)(xPos + game.player.range * game.blockSize * Math.cos(Math.atan(y/x))), (int)(yPos - game.player.range * game.blockSize * Math.sin(Math.atan(y/x))));
+					}*/
+					g2.fillOval(xPos - 2, yPos - 2, 4, 4);
 				}
-			} catch(Exception e) {} // Ignored
-			
-			/*// HP
-			try {
-				Image heartImage = ImageIO.read(new File("./rsc/heart.png"));
-				for(int y = 0; y<(int)(game.player.hp/5)+1; y++) {
-					for(int i = 0; i<Math.min(game.player.hp - y*5, 5); i++) {
-						g2.drawImage(heartImage, (int)(getWidth()/2d + Math.min(game.player.hp - y*5d, 5d)/2d * (double)heartImage.getWidth(null) - i*heartImage.getWidth(null)), 10 * (y+1), null);
+				
+				try { // Entities
+					for(Entity entity : game.entities) {
+						if(entity == game.player) continue;
+						if(entity.x < game.player.x - getWidth()/2/game.blockSize - 2 || entity.x > game.player.x + getWidth()/2/game.blockSize + 2) continue;
+						int entityX = (int)((entity.x - game.player.x) * game.blockSize) + getWidth()/2;
+						if(Launcher.DEBUG) {
+							g2.setColor(Color.MAGENTA);
+							g2.drawRect(entityX - entity.hitBoxWidth/2, getHeight() - (int)(entity.y*game.blockSize) - entity.hitBoxHeight, entity.hitBoxWidth, entity.hitBoxHeight);
+							g2.setColor(Color.YELLOW);
+							g2.fillOval(entityX - 2, getHeight() - (int)(entity.y*game.blockSize) - 2, 4, 4);
+							g2.setColor(Color.ORANGE);
+							g2.fillOval(entityX - 2, getHeight() - (int)(entity.y*game.blockSize) - entity.hitBoxHeight/2 - 2, 4, 4);
+						}
+						Image img = null;
+						EntityImageSet imageSet = entity.imageSet;
+						if(entity.vx < 0) img = ticks % 16 < 8 ? imageSet.leftOne : imageSet.leftTwo;
+						else if(entity.vx > 0) img = ticks % 16 < 8 ? imageSet.rightOne : imageSet.rightTwo;
+						else if(entity.y > game.getGroundHeight(entity.x)) img = imageSet.jump;
+						else img = imageSet.defaultImage;
+						g2.drawImage(img, entityX - img.getWidth(null)/2, getHeight() - (int)(entity.y*game.blockSize) - img.getHeight(null), null);
 					}
-				}
-			} catch(Exception e) { e.printStackTrace(); } // Ignored*/
-			
-			// Info
-			g2.setColor(Color.white);
-			g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, g2.getFont().getSize()));
-			g2.drawString("x: " + game.player.x, 10, 20);
-			g2.drawString("y: " + game.player.y, 10, 20 + g2.getFont().getSize());
-			if(ticks % 20 == 0) currentFps = 1f / ((System.currentTimeMillis() - lastFrameTime) / 1000f);
-			lastFrameTime = System.currentTimeMillis();
-			g2.drawString("fps: " + currentFps + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
-			/*if(Launcher.DEBUG) {
-				g2.drawString("Last hit: " + (System.currentTimeMillis() - player) + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
-				g2.drawString("Last damage: " + currentFps + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
-			}*/
+				} catch(Exception e) {} // Ignored
+				
+				/*// HP
+				try {
+					Image heartImage = ImageIO.read(new File("./rsc/heart.png"));
+					for(int y = 0; y<(int)(game.player.hp/5)+1; y++) {
+						for(int i = 0; i<Math.min(game.player.hp - y*5, 5); i++) {
+							g2.drawImage(heartImage, (int)(getWidth()/2d + Math.min(game.player.hp - y*5d, 5d)/2d * (double)heartImage.getWidth(null) - i*heartImage.getWidth(null)), 10 * (y+1), null);
+						}
+					}
+				} catch(Exception e) { e.printStackTrace(); } // Ignored*/
+				
+				// Info
+				g2.setColor(Color.white);
+				g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, g2.getFont().getSize()));
+				g2.drawString("x: " + game.player.x, 10, 20);
+				g2.drawString("y: " + game.player.y, 10, 20 + g2.getFont().getSize());
+				if(ticks % 20 == 0) currentFps = 1f / ((System.currentTimeMillis() - lastFrameTime) / 1000f);
+				lastFrameTime = System.currentTimeMillis();
+				g2.drawString("fps: " + currentFps + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
+				/*if(Launcher.DEBUG) {
+					g2.drawString("Last hit: " + (System.currentTimeMillis() - player) + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
+					g2.drawString("Last damage: " + currentFps + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
+				}*/
+			} catch(Exception outerException) {
+				System.err.println("Caught exception: " + outerException.getMessage());
+			}
 		}
 		
 	}
