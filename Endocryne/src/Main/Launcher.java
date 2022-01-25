@@ -1,16 +1,15 @@
 package Main;
 
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Die Launcher-Klasse, welche das Programm startet.
+ * <p>Hier wird gerade gestartet; das Spiel (statt des TitleScreens, wie spï¿½ter beabsichtigt).
  * @author Mika Thein
- * @author Felix Böttcher
+ * @author Felix Bï¿½ttcher
  * @author Max Tarasova
  * @version 1.0
  * @see {@link Game}
- * @see {@link TitleScreen}
  */
 public class Launcher {
 	
@@ -20,7 +19,7 @@ public class Launcher {
 	public static boolean DEBUG = true;
 	
 	/**
-	 * Der Speicherpfad für Endocryne-Dateien wie beispielsweise Welten und Einstellungen.
+	 * Der Speicherpfad fÃ¼r Endocryne-Dateien wie beispielsweise Welten und Einstellungen.
 	 */
 	public static final String mainDirectoryPath = System.getProperty("user.home") + "/Endocryne/";
 	

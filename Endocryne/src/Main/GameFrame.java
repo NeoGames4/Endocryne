@@ -116,6 +116,23 @@ public class GameFrame extends JFrame {
 				player.x += (int)(player.x-correction) - (player.x - player.hitBoxWidth/2d/game.blockSize) + 0.0001;
 			}
 			else player.x -= player.movementSpeed;
+		}
+		for(Entity e : game.entities) {
+			if(e.vx > 0) {
+				if(game.getGroundHeight(e.x+1) > e.y && (int)(e.x + e.vx + e.hitBoxWidth/2d/game.blockSize) != (int)(e.x)) {
+					int correction = e.x+1 < 0 ? 0 : 1;
+					e.x += (int)(e.x+correction) - (e.x + e.hitBoxWidth/2d/game.blockSize) - 0.0001;
+					if(e instanceof Mob && e.y == game.getGroundHeight(e.x)) e.vy = e.jumpSpeed;
+				}
+				else e.x += e.vx;
+			} else if(e.vx < 0) {
+				if(game.getGroundHeight(e.x-1) > e.y && (int)(e.x + e.vx - e.hitBoxWidth/2d/game.blockSize) != (int)(e.x)) {
+					int correction = e.x-1 < 0 ? 1 : 0;
+					e.x += (int)(e.x-correction) - (e.x - e.hitBoxWidth/2d/game.blockSize) + 0.0001;
+					if(e instanceof Mob && e.y == game.getGroundHeight(e.x)) e.vy = e.jumpSpeed;
+				}
+				else e.x += e.vx;
+			}
 		} ticks++;
 		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 30000 && game.entities.size() < 2) {
 			int amount = 4;
@@ -130,13 +147,26 @@ public class GameFrame extends JFrame {
 					Image hit = null;
 					EntityImageSet imageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
 					float x = player.x + getWidth()/2/game.blockSize + 1 + Math.min((float)i/10f * 1f, 1);
-					Mob mob = new Mob(x, game.getGroundHeight(x), 40, 12, 1.2f, imageSet);
+					Mob mob = new Mob(x, game.getGroundHeight(x), 30, 8, 1.2f, imageSet);
 					game.entities.add(mob);
 					System.out.println("At: " + x);
 				} catch(Exception e) { e.printStackTrace(); }
 			}
 			game.lastMobWaveSpawned = System.currentTimeMillis();
 			System.out.println("New wave spawned!");
+		}
+		for(Entity e : game.entities) {
+			if(e instanceof Mob) {
+				Player nearest = game.player;
+				for(Entity p : game.entities) {
+					if(p instanceof Player) {
+						if(Math.abs(p.x - e.x) < Math.abs(nearest.x - e.x)) nearest = (Player)p;
+					}
+				}
+				
+				e.vx = nearest.x < e.x ? -e.movementSpeed : e.movementSpeed;
+				if(Math.abs(nearest.x - e.x) < 1) e.vx = 0;
+			}
 		}
 	}
 	
@@ -171,26 +201,25 @@ public class GameFrame extends JFrame {
 					// player.x - getWidth()
 					for(int i = Math.max((int)(game.player.x - getWidth()/2/game.blockSize) + Math.abs(game.minBlocksX) - 2, 0); i<Math.min((int)(game.player.x - getWidth()/2/game.blockSize)+Math.abs(game.minBlocksX)+getWidth()/game.blockSize+2, game.blocks.size()); i++) {
 						Block block = game.blocks.get(i);
-						switch(block.type) {
-							case DIRT: break;
-							default:
-								g2.setColor(new Color(40, 140, 40));
-						}
-						g2.fillRect(block.x * game.blockSize - playerX + getWidth()/2, getHeight() - (block.y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
+						g2.setColor(block.type.color);
+						if(block.type == Blocks.GRAS) g2.drawImage(Block.grasImage, block.x * game.blockSize - playerX + getWidth()/2, getHeight() - (block.y * game.blockSize) - game.blockSize, null);
+						else g2.fillRect(block.x * game.blockSize - playerX + getWidth()/2, getHeight() - (block.y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
 						for(int y = block.y-1; y>=0; y--) {
-							g2.setColor(new Color(80, 50, 40));
+							g2.setColor(Blocks.DIRT.color);
 							g2.fillRect(block.x * game.blockSize - playerX + getWidth()/2, getHeight() - (y * game.blockSize) - game.blockSize, game.blockSize, game.blockSize);
 						}
 					}
+					
 				} catch(Exception e) {} // Ignored
 				
 				// Player
 				try {
 					Image img = null;
 					EntityImageSet imageSet = game.player.imageSet;
+					float groundHeight = (int)(game.player.x-game.player.hitBoxWidth/2d/game.blockSize) == (int)(game.player.x+game.player.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(game.player.x) : Math.max(game.getGroundHeight(game.player.x-game.player.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(game.player.x+game.player.hitBoxWidth/2d/game.blockSize));
 					if(Controls.aDown) img = ticks % 16 < 8 ? imageSet.leftOne : imageSet.leftTwo;
 					else if(Controls.dDown) img = ticks % 16 < 8 ? imageSet.rightOne : imageSet.rightTwo;
-					else if(game.player.y > game.getGroundHeight(game.player.x) || Controls.spaceDown || Controls.wDown) img = imageSet.jump;
+					else if(game.player.y > groundHeight || Controls.spaceDown || Controls.wDown) img = imageSet.jump;
 					else img = imageSet.defaultImage;
 					g2.drawImage(img, (int)(getWidth()/2) - img.getWidth(null)/2, getHeight() - (int)(game.player.y*game.blockSize) - img.getHeight(null), null);
 				} catch(Exception e) { e.printStackTrace(); }
@@ -225,23 +254,27 @@ public class GameFrame extends JFrame {
 						}
 						Image img = null;
 						EntityImageSet imageSet = entity.imageSet;
+						float groundHeight = (int)(entity.x-entity.hitBoxWidth/2d/game.blockSize) == (int)(entity.x+entity.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(entity.x) : Math.max(game.getGroundHeight(entity.x-entity.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(entity.x+entity.hitBoxWidth/2d/game.blockSize));
 						if(entity.vx < 0) img = ticks % 16 < 8 ? imageSet.leftOne : imageSet.leftTwo;
 						else if(entity.vx > 0) img = ticks % 16 < 8 ? imageSet.rightOne : imageSet.rightTwo;
-						else if(entity.y > game.getGroundHeight(entity.x)) img = imageSet.jump;
+						else if(entity.y > groundHeight) img = imageSet.jump;
 						else img = imageSet.defaultImage;
 						g2.drawImage(img, entityX - img.getWidth(null)/2, getHeight() - (int)(entity.y*game.blockSize) - img.getHeight(null), null);
 					}
 				} catch(Exception e) {} // Ignored
 				
-				/*// HP
+				// HP
 				try {
-					Image heartImage = ImageIO.read(new File("./rsc/heart.png"));
-					for(int y = 0; y<(int)(game.player.hp/5)+1; y++) {
-						for(int i = 0; i<Math.min(game.player.hp - y*5, 5); i++) {
-							g2.drawImage(heartImage, (int)(getWidth()/2d + Math.min(game.player.hp - y*5d, 5d)/2d * (double)heartImage.getWidth(null) - i*heartImage.getWidth(null)), 10 * (y+1), null);
+					Image heartImage = ImageIO.read(new File("./rsc/heart.png")).getScaledInstance(24, 24, Image.SCALE_FAST);
+					double heartsPerLine = 10d;
+					for(int y = 0; y<(int)(game.player.hp/heartsPerLine)+1; y++) {
+						for(int i = 0; i<Math.min(game.player.hp - y*heartsPerLine, heartsPerLine); i++) {
+							int xPos = (int)(getWidth()/2d + Math.min(game.player.hp - y*heartsPerLine, heartsPerLine)/2d * (double)heartImage.getWidth(null) - i*heartImage.getWidth(null));
+							int yPos = 10 * (y+1);
+							g2.drawImage(heartImage, xPos, yPos, null);
 						}
 					}
-				} catch(Exception e) { e.printStackTrace(); } // Ignored*/
+				} catch(Exception e) { e.printStackTrace(); } // Ignored
 				
 				// Info
 				g2.setColor(Color.white);

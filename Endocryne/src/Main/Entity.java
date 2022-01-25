@@ -18,7 +18,7 @@ public class Entity {
 	/**
 	 * Die horizontale Geschwindigkeit in Bl�cken pro Tick.
 	 */
-	public float vx = 0;						// FEHLT NOCH!
+	public float vx = 0;
 	/**
 	 * Die vertikale Geschwindigkeit in Bl�cken pro Tick.
 	 */
@@ -43,6 +43,10 @@ public class Entity {
 	 */
 	public float hp;
 	/**
+	 * Die volle Anzahl an Lebenspunkten.
+	 */
+	public float maxHp;
+	/**
 	 * Die Schadensst�rke.
 	 */
 	public float attackDamage;
@@ -59,11 +63,11 @@ public class Entity {
 	/**
 	 * Die HitBox-Weite in Pixeln.
 	 */
-	public int hitBoxWidth = 40;
+	public int hitBoxWidth = EntityImageSet.width;
 	/**
 	 * Die HitBox-H�he in Pixeln.
 	 */
-	public int hitBoxHeight = 120;
+	public int hitBoxHeight = EntityImageSet.height;
 	
 	/**
 	 * Attackierungscooldown in Millisekunden.
@@ -91,7 +95,8 @@ public class Entity {
 		this.x = x;
 		this.y = y;
 		this.imageSet = imageSet;
-		this.hp = hp;
+		this.hp = hp/2;
+		this.maxHp = hp;
 		this.range  = range;
 		this.attackDamage = attackDamage;
 	}

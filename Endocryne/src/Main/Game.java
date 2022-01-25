@@ -78,7 +78,7 @@ public class Game {
 			standardPlayerImageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
 		} catch(Exception e) { e.printStackTrace(); }
 		blocks.add(new Block(0, (int)(Math.random() * maxWorldHeight/2), Blocks.GRAS));
-		player = new Player(0, getGroundHeight(0), 100, 10, standardPlayerImageSet);
+		player = new Player(0, getGroundHeight(0), 70, 10, standardPlayerImageSet);
 		entities.add(player);
 		frame.addMouseListener(new MouseAdapter() {
 			

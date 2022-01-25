@@ -1,5 +1,11 @@
 package Main;
 
+import java.awt.Color;
+import java.awt.Image;
+import java.io.File;
+
+import javax.imageio.ImageIO;
+
 /**
  * Die Block-Klasse.
  * @author Mika Thein
@@ -20,6 +26,8 @@ public class Block {
 	 */
 	public final Blocks type;
 	
+	static public Image grasImage = null;
+	
 	/**
 	 * Erstellt einen neuen Block.
 	 * @param x die x-Koordinate.
@@ -30,6 +38,9 @@ public class Block {
 		this.x = x;
 		this.y = y;
 		this.type = type;
+		try {
+			if(grasImage == null) grasImage = ImageIO.read(new File("./rsc/gras.png"));
+		} catch(Exception e) {}
 	}
 
 }
