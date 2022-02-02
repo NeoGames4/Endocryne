@@ -7,10 +7,14 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+
+import org.json.JSONObject;
 
 /**
  * Die Klasse, die das Spiel und die Spielsteuerung verwaltet.
@@ -67,6 +71,10 @@ public class Game {
 	int maxWorldHeight = (int)(frame.getHeight()/blockSize * 5d/7d);
 	
 	public Game() {
+		this(null);
+	}
+	
+	public Game(File world) {
 		try {
 			Image defaultImage = ImageIO.read(new File("./rsc/default.png"));
 			Image leftOne = flipHorizontally(ImageIO.read(new File("./rsc/one.png")));
@@ -77,8 +85,20 @@ public class Game {
 			Image hit = null;
 			standardPlayerImageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
 		} catch(Exception e) { e.printStackTrace(); }
-		blocks.add(new Block(0, (int)(Math.random() * maxWorldHeight/2), Blocks.GRAS));
-		player = new Player(0, getGroundHeight(0), 70, 10, standardPlayerImageSet);
+		if(world == null) {
+			blocks.add(new Block(0, (int)(Math.random() * maxWorldHeight/2), Blocks.GRAS));
+			player = new Player(0, getGroundHeight(0), 70, 10, standardPlayerImageSet);
+		} else {
+			try {
+				String lines = "";
+				BufferedReader bufferedReader = new BufferedReader(new FileReader(world));
+				for(String l; (l = bufferedReader.readLine()) != null;) lines += l;
+				new GameLoader(this).load(new JSONObject(lines));
+			} catch(Exception e) {
+				e.printStackTrace();
+				throw new RuntimeException("Laden der Welt fehlgeschlagen!");
+			}
+		}
 		entities.add(player);
 		frame.addMouseListener(new MouseAdapter() {
 			
@@ -91,6 +111,8 @@ public class Game {
 				if(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= player.range * blockSize) {
 					System.out.println("Valid");
 				} else System.out.println("Invalid");
+				
+				player.hp -= 1;
 			}
 			
 		});

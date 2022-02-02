@@ -10,6 +10,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.DataLine;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -74,6 +78,15 @@ public class GameFrame extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		lastFrameTime = System.currentTimeMillis();
+		
+		try {
+			File soundFile = new File("./rsc/DontFallForBravery.wav");
+			AudioInputStream stream = AudioSystem.getAudioInputStream(soundFile);
+			DataLine.Info info = new DataLine.Info(Clip.class, stream.getFormat());
+			Clip clip = (Clip)AudioSystem.getLine(info);
+			clip.open(stream);
+			clip.loop(Clip.LOOP_CONTINUOUSLY);
+		} catch(Exception e) { e.printStackTrace(); }
 		
 		Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable() {
 			@Override
@@ -264,7 +277,7 @@ public class GameFrame extends JFrame {
 				} catch(Exception e) {} // Ignored
 				
 				// HP
-				try {
+				/*try {
 					Image heartImage = ImageIO.read(new File("./rsc/heart.png")).getScaledInstance(24, 24, Image.SCALE_FAST);
 					double heartsPerLine = 10d;
 					for(int y = 0; y<(int)(game.player.hp/heartsPerLine)+1; y++) {
@@ -274,20 +287,27 @@ public class GameFrame extends JFrame {
 							g2.drawImage(heartImage, xPos, yPos, null);
 						}
 					}
-				} catch(Exception e) { e.printStackTrace(); } // Ignored
+				} catch(Exception e) { e.printStackTrace(); } // Ignored*/
+				g2.setColor(Color.RED);
+				g2.fillRect(0, getHeight()-10, getWidth(), getHeight());
+				g2.setColor(Color.GREEN);
+				g2.fillRect(0, getHeight()-10, (int)(getWidth() * (game.player.hp/game.player.maxHp)), getHeight());
 				
 				// Info
 				g2.setColor(Color.white);
 				g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, g2.getFont().getSize()));
 				g2.drawString("x: " + game.player.x, 10, 20);
-				g2.drawString("y: " + game.player.y, 10, 20 + g2.getFont().getSize());
+				int cIndex = 1;
+				g2.drawString("y: " + game.player.y, 10, 20 + (cIndex++) * g2.getFont().getSize());
 				if(ticks % 20 == 0) currentFps = 1f / ((System.currentTimeMillis() - lastFrameTime) / 1000f);
 				lastFrameTime = System.currentTimeMillis();
-				g2.drawString("fps: " + currentFps + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
-				/*if(Launcher.DEBUG) {
-					g2.drawString("Last hit: " + (System.currentTimeMillis() - player) + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
-					g2.drawString("Last damage: " + currentFps + " (" + fps + ")", 10, 20 + 2 * g2.getFont().getSize());
-				}*/
+				g2.drawString("fps: " + currentFps + " (" + fps + ")", 10, 20 + (cIndex++) * g2.getFont().getSize());
+				if(Launcher.DEBUG) {
+					g2.drawString("Last hit: " + (System.currentTimeMillis() - game.player.cooldownSet.lastTimeHit), 10, 20 + (cIndex++) * g2.getFont().getSize());
+					g2.drawString("Last damage: " + (System.currentTimeMillis() - game.player.cooldownSet.lastTimeHit), 10, 20 + (cIndex++) * g2.getFont().getSize());
+					g2.drawString("HP: " + game.player.hp + "/" + game.player.maxHp, 10, 20 + (cIndex++) * g2.getFont().getSize());
+					g2.drawString("Attack damage: " + game.player.attackDamage, 10, 20 + (cIndex++) * g2.getFont().getSize());
+				}
 			} catch(Exception outerException) {
 				System.err.println("Caught exception: " + outerException.getMessage());
 			}
