@@ -29,6 +29,11 @@ public class Game {
 	public final GameFrame frame = new GameFrame(this, (int)(Toolkit.getDefaultToolkit().getScreenSize().width/1.2), (int)(Toolkit.getDefaultToolkit().getScreenSize().height/1.2));
 	
 	/**
+	 * Ob sich das Spiel im Pausenmodus befindet.
+	 */
+	public boolean pause = false;
+	
+	/**
 	 * Alle Entities auf der Karte.
 	 */
 	ArrayList<Entity> entities = new ArrayList<>();
@@ -88,6 +93,7 @@ public class Game {
 		if(world == null) {
 			blocks.add(new Block(0, (int)(Math.random() * maxWorldHeight/2), Blocks.GRAS));
 			player = new Player(0, getGroundHeight(0), 70, 10, standardPlayerImageSet);
+			entities.add(player);
 		} else {
 			try {
 				String lines = "";
@@ -99,7 +105,6 @@ public class Game {
 				throw new RuntimeException("Laden der Welt fehlgeschlagen!");
 			}
 		}
-		entities.add(player);
 		frame.addMouseListener(new MouseAdapter() {
 			
 			@Override

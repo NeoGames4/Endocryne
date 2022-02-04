@@ -8,6 +8,11 @@ package Main;
 public class Entity {
 	
 	/**
+	 * Die maximale horizontale Geschwindigkeit eines Entities in Blöcken pro Tick.
+	 */
+	static public final float maxVelocityX = 0.1f;
+	
+	/**
 	 * Die x-Position in Blï¿½cken.
 	 */
 	public float x;
@@ -72,11 +77,11 @@ public class Entity {
 	/**
 	 * Attackierungscooldown in Millisekunden.
 	 */
-	public long attackDelay = 10;
+	public long attackDelay = 500;
 	/**
 	 * Schadenschutzdauer in Millisekunden.
 	 */
-	public long damageDelay = 50;
+	public long damageDelay = 750;
 	
 	/**
 	 * Ein CooldownSet zum Abgleich mit den Cooldowns.
@@ -95,7 +100,7 @@ public class Entity {
 		this.x = x;
 		this.y = y;
 		this.imageSet = imageSet;
-		this.hp = hp/2;
+		this.hp = hp;
 		this.maxHp = hp;
 		this.range  = range;
 		this.attackDamage = attackDamage;
@@ -112,6 +117,7 @@ public class Entity {
 		if(System.currentTimeMillis() - cooldownSet.lastTimeDamage > damageDelay) {
 			this.hp -= damage;
 			this.vx += velocity;
+			if(Math.abs(this.vx) > maxVelocityX) this.vx = Math.copySign(maxVelocityX, velocity);
 			this.cooldownSet.lastTimeDamage = System.currentTimeMillis();
 		}
 	}

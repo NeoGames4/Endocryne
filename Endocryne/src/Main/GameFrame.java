@@ -92,7 +92,7 @@ public class GameFrame extends JFrame {
 			@Override
 			public void run() {
 				repaint();
-				update();
+				if(!game.pause) update();
 			}
 		}, 100, (int)(1d/fps * 1000d), TimeUnit.MILLISECONDS);
 	}
@@ -101,6 +101,8 @@ public class GameFrame extends JFrame {
 	 * Die Gravitationsbeschleunigung in Bl�cken pro Tick.
 	 */
 	public final float gravity = -0.01f;
+	
+	public final float groundResistance = -0.005f;
 	
 	/**
 	 * Durchl�uft alle Entities und aktualisiert ihre Positionen (im Hinblick auf Gravitation und Steuerung).
@@ -116,10 +118,18 @@ public class GameFrame extends JFrame {
 			e.y += e.vy;
 			e.vy += gravity;
 		}
+		for(Entity e : game.entities) {
+			float groundHeight = (int)(e.x-e.hitBoxWidth/2d/game.blockSize) == (int)(e.x+e.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(e.x) : Math.max(game.getGroundHeight(e.x-e.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(e.x+e.hitBoxWidth/2d/game.blockSize));
+			if(e.vx != 0) {
+				e.vx += -Math.copySign(groundResistance, e.vx);
+				if(Math.abs(e.vx) < Math.abs(groundResistance)) e.vx = 0;
+			}
+		}
 		if(Controls.dDown) {
 			if(game.getGroundHeight(player.x+1) > player.y && (int)(player.x + player.movementSpeed + player.hitBoxWidth/2d/game.blockSize) != (int)(player.x)) {
 				int correction = player.x+1 < 0 ? 0 : 1;
 				player.x += (int)(player.x+correction) - (player.x + player.hitBoxWidth/2d/game.blockSize) - 0.0001;
+				player.vx = 0;
 			}
 			else player.x += player.movementSpeed;
 		}
@@ -127,6 +137,7 @@ public class GameFrame extends JFrame {
 			if(game.getGroundHeight(player.x-1) > player.y && (int)(player.x - player.movementSpeed - player.hitBoxWidth/2d/game.blockSize) != (int)(player.x)) {
 				int correction = player.x-1 < 0 ? 1 : 0;
 				player.x += (int)(player.x-correction) - (player.x - player.hitBoxWidth/2d/game.blockSize) + 0.0001;
+				player.vx = 0;
 			}
 			else player.x -= player.movementSpeed;
 		}
@@ -178,9 +189,13 @@ public class GameFrame extends JFrame {
 				}
 				
 				e.vx = nearest.x < e.x ? -e.movementSpeed : e.movementSpeed;
-				if(Math.abs(nearest.x - e.x) < 1) e.vx = 0;
+				if(Math.abs(nearest.x - e.x) < 1) {
+					e.vx = 0;
+					e.attack(nearest);
+				}
 			}
 		}
+		if(player != null && player.hp <= 0) game.pause = true;
 	}
 	
 	/**
@@ -194,8 +209,23 @@ public class GameFrame extends JFrame {
 		public void paintComponent(Graphics g) {
 			Graphics2D g2 = (Graphics2D) g;
 			
-			g2.setColor(new Color(200, 200, 255)); // Sky color
+			if(!game.pause) g2.setColor(new Color(200, 200, 255)); // Sky color
+			else g2.setColor(new Color(120, 120, 120));
 			g2.fillRect(0, 0, getWidth(), getHeight());
+			
+			if(game.pause) {
+				if(game.player.hp <= 0) {
+					g2.setColor(Color.WHITE);
+					Font previousFont = g2.getFont();
+					g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, 36));
+					String infText = "you died lmao";
+					g2.drawString(infText, getWidth()/2-g2.getFontMetrics().stringWidth(infText)/2, 100);
+					g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, 16));
+					String subText = "you survived that long: " + ticks + " ticks";
+					g2.drawString(subText, getWidth()/2-g2.getFontMetrics().stringWidth(subText)/2, 150);
+					g2.setFont(previousFont);
+				}
+			}
 			
 			try {
 			
