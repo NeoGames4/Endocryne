@@ -13,6 +13,11 @@ public class Player extends Entity {
 	private static final float standardRange = 1.5f;
 	
 	/**
+	 * wie viele Entities der Spieler getötet hat.
+	 */
+	public int kills = 0;
+	
+	/**
 	 * Erstellt einen neuen Spieler.
 	 * @param x die Start-x-Koordinate
 	 * @param y die Start-y-Koordinate

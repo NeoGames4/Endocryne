@@ -5,6 +5,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +16,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.DataLine;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -60,6 +63,11 @@ public class GameFrame extends JFrame {
 	public long[] lastMouseClick = new long[] {-1, -1, -1};
 	
 	/**
+	 * Die Spielmusik.
+	 */
+	Clip clip;
+	
+	/**
 	 * Erstellt einen neuen Frame.
 	 * @param game das zugeh�rige Spiel
 	 * @param width die Fensterweite in Pixeln
@@ -75,7 +83,18 @@ public class GameFrame extends JFrame {
 		setFocusTraversalKeysEnabled(true);
 		setContentPane(stage);
 		setVisible(true);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				TitleScreen titleScreen = new TitleScreen();
+				titleScreen.setVisible(true);
+				game.pause = true;
+				clip.stop();
+				dispose();
+			}
+		});
 		
 		lastFrameTime = System.currentTimeMillis();
 		
@@ -83,7 +102,7 @@ public class GameFrame extends JFrame {
 			File soundFile = new File("./rsc/DontFallForBravery.wav");
 			AudioInputStream stream = AudioSystem.getAudioInputStream(soundFile);
 			DataLine.Info info = new DataLine.Info(Clip.class, stream.getFormat());
-			Clip clip = (Clip)AudioSystem.getLine(info);
+			clip = (Clip)AudioSystem.getLine(info);
 			clip.open(stream);
 			clip.loop(Clip.LOOP_CONTINUOUSLY);
 		} catch(Exception e) { e.printStackTrace(); }
@@ -221,8 +240,14 @@ public class GameFrame extends JFrame {
 					String infText = "you died lmao";
 					g2.drawString(infText, getWidth()/2-g2.getFontMetrics().stringWidth(infText)/2, 100);
 					g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, 16));
-					String subText = "you survived that long: " + ticks + " ticks";
-					g2.drawString(subText, getWidth()/2-g2.getFontMetrics().stringWidth(subText)/2, 150);
+					String[] subTexts = new String[] {"you survived that long: " + (int)((double)ticks * 1d/fps) + " seconds", "wow", "", "you may close this window now and try better", "", "", "",
+							"Statistics",
+							"Entities killed (by you): " + game.player.kills,
+							"Blocks generated: " + game.blocks.size(),
+							"Amount of entities (still living): " + game.entities.size(),
+							"Game ticks: " + ticks,
+							"Game time: " + ((double)ticks * 1d/fps) + " seconds"};
+					for(int i = 0; i<subTexts.length; i++) g2.drawString(subTexts[i], getWidth()/2-g2.getFontMetrics().stringWidth(subTexts[i])/2, 150 + i * g2.getFontMetrics().getHeight());
 					g2.setFont(previousFont);
 				}
 			}
