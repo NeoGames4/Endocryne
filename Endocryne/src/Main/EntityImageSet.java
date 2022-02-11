@@ -37,12 +37,21 @@ public class EntityImageSet {
 			Image defaultImage = img.getSubimage(0, 0, width, height);
 			Image leftOne = img.getSubimage(width, 0, width, height);
 			Image rightOne = img.getSubimage(2 * width, 0, width, height);
+			if(isEmpty(rightOne)) rightOne = Game.flipHorizontally((BufferedImage)leftOne);
 			Image leftTwo = img.getSubimage(3 * width, 0, width, height);
 			Image rightTwo = img.getSubimage(4 * width, 0, width, height);
+			if(isEmpty(rightTwo)) rightTwo = Game.flipHorizontally((BufferedImage)leftTwo);
 			Image jump = img.getSubimage(5 * width, 0, width, height);
 			Image hit = img.getSubimage(6 * width, 0, width, height);
 			return new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
 		} else throw new Exception("Image has to be scaled like " + (7 * width) + " px times " + height + " px");
+	}
+	
+	public static boolean isEmpty(Image image) throws Exception {
+		for(int x = 0; x<image.getWidth(null); x++) {
+			for(int y = 0; y<image.getHeight(null); y++) {
+			}
+		} return true;
 	}
 
 }

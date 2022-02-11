@@ -2,6 +2,8 @@ package Main;
 
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
@@ -49,7 +51,12 @@ public class Game {
 	/**
 	 * Die Spielergrafiken.
 	 */
-	private EntityImageSet standardPlayerImageSet;
+	public EntityImageSet standardPlayerImageSet;
+	
+	/**
+	 * Die Monstergrafiken.
+	 */
+	public EntityImageSet standardMobImageSet;
 	
 	/**
 	 * Die Darstellungsgr��e der Bl�cke in Pixeln.
@@ -90,6 +97,9 @@ public class Game {
 			Image hit = null;
 			standardPlayerImageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
 		} catch(Exception e) { e.printStackTrace(); }
+		try {
+			standardMobImageSet = EntityImageSet.getEntityImageSet(ImageIO.read(new File("./rsc/mob.png")));
+		} catch(Exception e) { e.printStackTrace(); }
 		if(world == null) {
 			blocks.add(new Block(0, (int)(Math.random() * maxWorldHeight/2), Blocks.GRAS));
 			player = new Player(0, getGroundHeight(0), 70, 10, standardPlayerImageSet);
@@ -110,14 +120,26 @@ public class Game {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				int x = (int) (e.getX() - (frame.getWidth()/2));
-				int y = (int) ((frame.getHeight() - player.y*blockSize + player.hitBoxHeight * player.hitHeightRatio) - e.getY());
+				int y = (int) ((frame.getHeight() - player.y*blockSize - player.hitBoxHeight * player.hitHeightRatio) - e.getY());
 				frame.lastMouseClick = new long[] {e.getX(), e.getY(), System.currentTimeMillis()};
-				System.out.println("x: " + x + ", y: " + y);
-				if(Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= player.range * blockSize) {
-					System.out.println("Valid");
-				} else System.out.println("Invalid");
-				
-				player.hp -= 1;
+				float angle = (float)Math.toDegrees(Math.atan2((float)y, (float)x));
+				angle += angle < 0 ? 360 : 0;
+				System.out.println("x: " + x + ", y: " + y + ", " + angle);
+				for(Entity entity : entities) {
+					if(player.x - entity.x <= player.range) {
+						break;
+					}
+				}
+			}
+			
+		});
+		frame.addKeyListener(new KeyAdapter() {
+			
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					if(player.hp > 0) pause = !pause;
+				}
 			}
 			
 		});

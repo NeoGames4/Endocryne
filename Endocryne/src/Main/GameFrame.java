@@ -177,20 +177,12 @@ public class GameFrame extends JFrame {
 				else e.x += e.vx;
 			}
 		} ticks++;
-		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 30000 && game.entities.size() < 2) {
+		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 10000 && game.entities.size() < 2) {
 			int amount = 4;
 			for(int i = 0; i<amount; i++) {
 				try {
-					Image defaultImage = ImageIO.read(new File("./rsc/default.png"));
-					Image leftOne = Game.flipHorizontally(ImageIO.read(new File("./rsc/one.png")));
-					Image rightOne = ImageIO.read(new File("./rsc/one.png"));
-					Image leftTwo = Game.flipHorizontally(ImageIO.read(new File("./rsc/two.png")));
-					Image rightTwo = ImageIO.read(new File("./rsc/two.png"));
-					Image jump = ImageIO.read(new File("./rsc/jump.png"));
-					Image hit = null;
-					EntityImageSet imageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
-					float x = player.x + getWidth()/2/game.blockSize + 1 + Math.min((float)i/10f * 1f, 1);
-					Mob mob = new Mob(x, game.getGroundHeight(x), 30, 8, 1.2f, imageSet);
+					float x = Math.random() >= 0.5 ? player.x + getWidth()/2/game.blockSize + 1 + Math.min((float)i/(float)amount * 3f, 1) : player.x - getWidth()/2/game.blockSize - 1 - Math.min((float)i/(float)amount * 3f, 1);
+					Mob mob = new Mob(x, game.getGroundHeight(x), 30, 8, 1.2f, game.standardMobImageSet);
 					game.entities.add(mob);
 					System.out.println("At: " + x);
 				} catch(Exception e) { e.printStackTrace(); }
@@ -208,13 +200,16 @@ public class GameFrame extends JFrame {
 				}
 				
 				e.vx = nearest.x < e.x ? -e.movementSpeed : e.movementSpeed;
-				if(Math.abs(nearest.x - e.x) < 1) {
+				if(Math.abs(nearest.x - e.x) < Math.max(Math.random()* 2, 0.5)) {
 					e.vx = 0;
 					e.attack(nearest);
 				}
 			}
 		}
-		if(player != null && player.hp <= 0) game.pause = true;
+		if(player != null && player.hp <= 0) {
+			game.pause = true;
+			game.entities.remove(player);
+		}
 	}
 	
 	/**
@@ -231,26 +226,6 @@ public class GameFrame extends JFrame {
 			if(!game.pause) g2.setColor(new Color(200, 200, 255)); // Sky color
 			else g2.setColor(new Color(120, 120, 120));
 			g2.fillRect(0, 0, getWidth(), getHeight());
-			
-			if(game.pause) {
-				if(game.player.hp <= 0) {
-					g2.setColor(Color.WHITE);
-					Font previousFont = g2.getFont();
-					g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, 36));
-					String infText = "you died lmao";
-					g2.drawString(infText, getWidth()/2-g2.getFontMetrics().stringWidth(infText)/2, 100);
-					g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, 16));
-					String[] subTexts = new String[] {"you survived that long: " + (int)((double)ticks * 1d/fps) + " seconds", "wow", "", "you may close this window now and try better", "", "", "",
-							"Statistics",
-							"Entities killed (by you): " + game.player.kills,
-							"Blocks generated: " + game.blocks.size(),
-							"Amount of entities (still living): " + game.entities.size(),
-							"Game ticks: " + ticks,
-							"Game time: " + ((double)ticks * 1d/fps) + " seconds"};
-					for(int i = 0; i<subTexts.length; i++) g2.drawString(subTexts[i], getWidth()/2-g2.getFontMetrics().stringWidth(subTexts[i])/2, 150 + i * g2.getFontMetrics().getHeight());
-					g2.setFont(previousFont);
-				}
-			}
 			
 			try {
 			
@@ -348,6 +323,39 @@ public class GameFrame extends JFrame {
 				g2.setColor(Color.GREEN);
 				g2.fillRect(0, getHeight()-10, (int)(getWidth() * (game.player.hp/game.player.maxHp)), getHeight());
 				
+				// Death / Pause screen
+				if(game.pause) {
+					if(game.player.hp <= 0) {
+						g2.setColor(new Color(32, 32, 32, 186));
+						g2.drawRect(0, 0, getWidth(), getHeight());
+						g2.setColor(Color.WHITE);
+						Font previousFont = g2.getFont();
+						g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, 36));
+						String infText = "you died lmao";
+						g2.drawString(infText, getWidth()/2-g2.getFontMetrics().stringWidth(infText)/2, 100);
+						g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, 16));
+						String[] subTexts = new String[] {"you survived that long: " + (int)((double)ticks * 1d/fps) + " seconds", "wow", "", "you may close this window now and try better", "", "", "",
+								"Statistics",
+								"Entities killed (by you): " + game.player.kills,
+								"Blocks generated: " + game.blocks.size(),
+								"Amount of entities (still living): " + game.entities.size(),
+								"Game ticks: " + ticks,
+								"Game time: " + ((double)(int)((double)ticks * 1d/fps * 1000000)/1000000d) + " seconds"};
+						for(int i = 0; i<subTexts.length; i++) g2.drawString(subTexts[i], getWidth()/2-g2.getFontMetrics().stringWidth(subTexts[i])/2, 150 + i * g2.getFontMetrics().getHeight());
+						g2.setFont(previousFont);
+					} else {
+						g2.setColor(Color.WHITE);
+						Font previousFont = g2.getFont();
+						g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, 36));
+						String infText = "pause";
+						g2.drawString(infText, getWidth()/2-g2.getFontMetrics().stringWidth(infText)/2, 100);
+						g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, 16));
+						String[] subTexts = new String[] {"you survived that long (yet): " + (int)((double)ticks * 1d/fps) + " seconds"};
+						for(int i = 0; i<subTexts.length; i++) g2.drawString(subTexts[i], getWidth()/2-g2.getFontMetrics().stringWidth(subTexts[i])/2, 150 + i * g2.getFontMetrics().getHeight());
+						g2.setFont(previousFont);
+					}
+				}
+				
 				// Info
 				g2.setColor(Color.white);
 				g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, g2.getFont().getSize()));
@@ -357,6 +365,7 @@ public class GameFrame extends JFrame {
 				if(ticks % 20 == 0) currentFps = 1f / ((System.currentTimeMillis() - lastFrameTime) / 1000f);
 				lastFrameTime = System.currentTimeMillis();
 				g2.drawString("fps: " + currentFps + " (" + fps + ")", 10, 20 + (cIndex++) * g2.getFont().getSize());
+				g2.drawString("time: " + ((double)(int)((double)ticks * 1d/fps * 100)/100d), 10, 20 + (cIndex++) * g2.getFont().getSize());
 				if(Launcher.DEBUG) {
 					g2.drawString("Last hit: " + (System.currentTimeMillis() - game.player.cooldownSet.lastTimeHit), 10, 20 + (cIndex++) * g2.getFont().getSize());
 					g2.drawString("Last damage: " + (System.currentTimeMillis() - game.player.cooldownSet.lastTimeHit), 10, 20 + (cIndex++) * g2.getFont().getSize());
