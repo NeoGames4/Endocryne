@@ -3,16 +3,14 @@ package Main;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.io.File;
 
-import javax.imageio.ImageIO;
-import javax.swing.JButton;
+import javax.swing.JPanel;
 
-public class Button extends JButton {
+public class Background extends JPanel {
 	
 	public Image image;
 	
-	public Button(Image image) {
+	public Background(Image image) {
 		super();
 		this.image = image;
 		this.repaint();

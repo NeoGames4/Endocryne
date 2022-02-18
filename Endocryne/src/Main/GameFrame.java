@@ -177,18 +177,19 @@ public class GameFrame extends JFrame {
 				else e.x += e.vx;
 			}
 		} ticks++;
-		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 10000 && game.entities.size() < 2) {
-			int amount = 4;
+		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 1000 && game.entities.size()-1 < 0.075 * (ticks * 1d/fps) + 4) {
+			int amount = (int) (0.075 * (ticks * 1d/fps) - game.entities.size() + 3);
 			for(int i = 0; i<amount; i++) {
 				try {
-					float x = Math.random() >= 0.5 ? player.x + getWidth()/2/game.blockSize + 1 + Math.min((float)i/(float)amount * 3f, 1) : player.x - getWidth()/2/game.blockSize - 1 - Math.min((float)i/(float)amount * 3f, 1);
-					Mob mob = new Mob(x, game.getGroundHeight(x), 30, 8, 1.2f, game.standardMobImageSet);
+					float x = player.x - getWidth()/2/game.blockSize + (float) ((double)getWidth()/(double)game.blockSize * Math.random());
+					if(Math.abs(player.x - x) < 4) x += Math.random() > 0.5 ? 4 : -4;
+					Mob mob = new Mob(x, game.maxWorldHeight + 4, 30, 8, 1.2f, game.standardMobImageSet);
 					game.entities.add(mob);
 					System.out.println("At: " + x);
 				} catch(Exception e) { e.printStackTrace(); }
 			}
 			game.lastMobWaveSpawned = System.currentTimeMillis();
-			System.out.println("New wave spawned!");
+			System.out.println("New wave spawned: " + amount);
 		}
 		for(Entity e : game.entities) {
 			if(e instanceof Mob) {
@@ -200,9 +201,10 @@ public class GameFrame extends JFrame {
 				}
 				
 				e.vx = nearest.x < e.x ? -e.movementSpeed : e.movementSpeed;
+				if(e.y > game.maxWorldHeight + 1.5) e.vx = 0;
 				if(Math.abs(nearest.x - e.x) < Math.max(Math.random()* 2, 0.5)) {
 					e.vx = 0;
-					e.attack(nearest);
+					if(Math.abs(nearest.y - e.y) < 1) e.attack(nearest);
 				}
 			}
 		}
@@ -371,6 +373,7 @@ public class GameFrame extends JFrame {
 					g2.drawString("Last damage: " + (System.currentTimeMillis() - game.player.cooldownSet.lastTimeHit), 10, 20 + (cIndex++) * g2.getFont().getSize());
 					g2.drawString("HP: " + game.player.hp + "/" + game.player.maxHp, 10, 20 + (cIndex++) * g2.getFont().getSize());
 					g2.drawString("Attack damage: " + game.player.attackDamage, 10, 20 + (cIndex++) * g2.getFont().getSize());
+					g2.drawString("Entities: " + game.entities.size(), 10, 20 + (cIndex++) * g2.getFont().getSize());
 				}
 			} catch(Exception outerException) {
 				System.err.println("Caught exception: " + outerException.getMessage());

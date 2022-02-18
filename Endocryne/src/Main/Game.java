@@ -51,7 +51,7 @@ public class Game {
 	/**
 	 * Die Spielergrafiken.
 	 */
-	public EntityImageSet standardPlayerImageSet;
+	public static EntityImageSet standardPlayerImageSet;
 	
 	/**
 	 * Die Monstergrafiken.
@@ -88,14 +88,18 @@ public class Game {
 	
 	public Game(File world) {
 		try {
-			Image defaultImage = ImageIO.read(new File("./rsc/default.png"));
-			Image leftOne = flipHorizontally(ImageIO.read(new File("./rsc/one.png")));
-			Image rightOne = ImageIO.read(new File("./rsc/one.png"));
-			Image leftTwo = flipHorizontally(ImageIO.read(new File("./rsc/two.png")));
-			Image rightTwo = ImageIO.read(new File("./rsc/two.png"));
-			Image jump = ImageIO.read(new File("./rsc/jump.png"));
-			Image hit = null;
-			standardPlayerImageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
+			try {
+				standardPlayerImageSet = EntityImageSet.getEntityImageSet(Options.skin);
+			} catch(Exception exception) {
+				Image defaultImage = ImageIO.read(new File("./rsc/default.png"));
+				Image leftOne = flipHorizontally(ImageIO.read(new File("./rsc/one.png")));
+				Image rightOne = ImageIO.read(new File("./rsc/one.png"));
+				Image leftTwo = flipHorizontally(ImageIO.read(new File("./rsc/two.png")));
+				Image rightTwo = ImageIO.read(new File("./rsc/two.png"));
+				Image jump = ImageIO.read(new File("./rsc/jump.png"));
+				Image hit = null;
+				standardPlayerImageSet = new EntityImageSet(defaultImage, leftOne, rightOne, leftTwo, rightTwo, jump, hit);
+			}
 		} catch(Exception e) { e.printStackTrace(); }
 		try {
 			standardMobImageSet = EntityImageSet.getEntityImageSet(ImageIO.read(new File("./rsc/mob.png")));
@@ -126,7 +130,10 @@ public class Game {
 				angle += angle < 0 ? 360 : 0;
 				System.out.println("x: " + x + ", y: " + y + ", " + angle);
 				for(Entity entity : entities) {
-					if(player.x - entity.x <= player.range) {
+					if(entity == player) continue;
+					if(Math.abs(player.x - entity.x) <= player.range * Math.cos(Math.toRadians(angle)) && Math.abs(player.y - entity.y) <= player.range * Math.sin(Math.toRadians(angle))) {
+						System.out.println("Hit");
+						player.attack(entity);
 						break;
 					}
 				}

@@ -3,16 +3,13 @@ package Main;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.io.File;
 
-import javax.imageio.ImageIO;
-import javax.swing.JButton;
+import javax.swing.JPanel;
 
-public class Button extends JButton {
+public class Image2 extends JPanel {
+public Image image;
 	
-	public Image image;
-	
-	public Button(Image image) {
+	public Image2(Image image) {
 		super();
 		this.image = image;
 		this.repaint();
@@ -24,7 +21,7 @@ public class Button extends JButton {
 		g2.setColor(getBackground());
 		g2.fillRect(0, 0, getWidth(), getHeight());
 		
-		g2.drawImage(image, 0, 0, null);
+g2.drawImage(image, 0, 0, null);
 		g2.dispose();
 		
 	}
