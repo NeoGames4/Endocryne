@@ -75,7 +75,7 @@ public class Game {
 	/**
 	 * Der Zeitpunkt, zu welchem das letzte Mal eine Welle an Mobs erschaffen worden ist.
 	 */
-	long lastMobWaveSpawned = System.currentTimeMillis();
+	long lastMobWaveSpawned = System.currentTimeMillis() - 5000;
 	
 	/**
 	 * Die maximale Welth�he in Bl�cken.
@@ -128,11 +128,12 @@ public class Game {
 				frame.lastMouseClick = new long[] {e.getX(), e.getY(), System.currentTimeMillis()};
 				float angle = (float)Math.toDegrees(Math.atan2((float)y, (float)x));
 				angle += angle < 0 ? 360 : 0;
-				System.out.println("x: " + x + ", y: " + y + ", " + angle);
+				System.out.println("x: " + (player.range * Math.cos(Math.toRadians(angle))) + ", y: " + (player.range * Math.sin(Math.toRadians(angle))) + ", " + angle);
 				for(Entity entity : entities) {
 					if(entity == player) continue;
-					if(Math.abs(player.x - entity.x) <= player.range * Math.cos(Math.toRadians(angle)) && Math.abs(player.y - entity.y) <= player.range * Math.sin(Math.toRadians(angle))) {
-						System.out.println("Hit");
+					float pX = player.x + player.hitBoxWidth/2/blockSize, pY = player.y;
+					float eX = entity.x + entity.hitBoxWidth/2/blockSize, eY = entity.y;
+					if((pX - eX > 0 && pX - eX <= player.range * Math.cos(Math.toRadians(angle))) || (pX - eX < 0 && pX - eX >= player.range * Math.cos(Math.toRadians(angle)))) {
 						player.attack(entity);
 						break;
 					}
