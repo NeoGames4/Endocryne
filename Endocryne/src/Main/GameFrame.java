@@ -177,7 +177,7 @@ public class GameFrame extends JFrame {
 				else e.x += e.vx;
 			}
 		} ticks++;
-		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 1000 && game.entities.size()-1 < 0.075 * (ticks * 1d/fps) + 4) {
+		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 10000 && game.entities.size()-1 < 0.075 * (ticks * 1d/fps) + 4) {
 			int amount = (int) (0.075 * (ticks * 1d/fps) - game.entities.size() + 3);
 			for(int i = 0; i<amount; i++) {
 				try {
@@ -204,7 +204,7 @@ public class GameFrame extends JFrame {
 				if(e.y > game.maxWorldHeight + 1.5) e.vx = 0;
 				if(Math.abs(nearest.x - e.x) < Math.max(Math.random()* 2, 0.5)) {
 					e.vx = 0;
-					if(Math.abs(nearest.y - e.y) < 1) e.attack(nearest);
+					if(Math.abs(nearest.y - e.y) < 1.3) e.attack(nearest);
 				}
 			}
 		}
