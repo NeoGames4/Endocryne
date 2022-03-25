@@ -1,5 +1,7 @@
 package Main;
 
+import java.io.File;
+
 /**
  * Die Entity-Klasse.
  * @author Mika Thein
@@ -109,14 +111,19 @@ public class Entity {
 	public void attack(Entity entity) {
 		if(System.currentTimeMillis() - cooldownSet.lastTimeHit > attackDelay) {
 			cooldownSet.lastTimeHit = System.currentTimeMillis();
-			entity.onDamage(attackDamage, entity.x < x ? -0.1f : 0.1f);
+			Game.sound.playPunchSounds();
+			if(entity instanceof Player) entity.onDamage(attackDamage, entity.x < x ? -0.1f : 0.1f, this);
+			else entity.onDamage(attackDamage, entity.x < x ? -1.5f : 1.5f, this);
 		}
 	}
 	
-	public void onDamage(float damage, float velocity) {
+	public void onDamage(float damage, float velocity, Entity attacker) {
 		if(System.currentTimeMillis() - cooldownSet.lastTimeDamage > damageDelay) {
+			if(attacker instanceof Player) ((Player) attacker).lastEntityHit = this;
 			this.hp -= damage;
 			this.vx += velocity;
+			if(this instanceof Player) Game.sound.playPlayerTakesDamageSounds();
+			else Game.sound.playMobTakesDamageSounds();
 			if(Math.abs(this.vx) > maxVelocityX) this.vx = Math.copySign(maxVelocityX, velocity);
 			this.cooldownSet.lastTimeDamage = System.currentTimeMillis();
 		}

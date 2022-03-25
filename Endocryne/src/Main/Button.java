@@ -21,8 +21,6 @@ public class Button extends JButton {
 	@Override
 	public void paintComponent(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
-		g2.setColor(getBackground());
-		g2.fillRect(0, 0, getWidth(), getHeight());
 		
 		g2.drawImage(image, 0, 0, null);
 		g2.dispose();

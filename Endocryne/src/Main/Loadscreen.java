@@ -22,7 +22,7 @@ public class Loadscreen extends JFrame {
             contentPane.setLayout(new BorderLayout());
             setSize(new Dimension(717, 538));
             Image ii = new ImageIcon(
-                    "./rsc/loadscreen.gif").getImage().getScaledInstance(717, 538, Image.SCALE_DEFAULT);
+                    "./rsc/video.gif").getImage().getScaledInstance(717, 538, Image.SCALE_DEFAULT);
             imageLabel.setIcon(new ImageIcon(ii));
             contentPane.add(imageLabel, java.awt.BorderLayout.CENTER);
             // show it

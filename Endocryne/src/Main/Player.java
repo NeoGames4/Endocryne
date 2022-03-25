@@ -18,6 +18,11 @@ public class Player extends Entity {
 	public int kills = 0;
 	
 	/**
+	 * Das Entity, welches als letztes vom Spieler geschlagen worden ist.
+	 */
+	public Entity lastEntityHit;
+	
+	/**
 	 * Erstellt einen neuen Spieler.
 	 * @param x die Start-x-Koordinate
 	 * @param y die Start-y-Koordinate
@@ -26,7 +31,8 @@ public class Player extends Entity {
 	 * @param imageSet das imageSet
 	 */
 	public Player(float x, float y, float hp, float attackDamage, EntityImageSet imageSet) {
-		super(x, y, hp, attackDamage, standardRange, imageSet);
+		super(x, y, hp, attackDamage, standardRange * 4f, imageSet);
+		this.attackDelay = 50;
 	}
 
 }

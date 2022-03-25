@@ -18,6 +18,7 @@ public class Mob extends Entity {
 	public Mob(float x, float y, float hp, float attackDamage, float range, EntityImageSet imageSet) {
 		super(x, y, hp, attackDamage, range, imageSet);
 		this.movementSpeed = 0.075f;
+		this.damageDelay = 500;
 	}
 
 }

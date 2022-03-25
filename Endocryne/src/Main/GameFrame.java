@@ -8,15 +8,11 @@ import java.awt.Image;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.imageio.ImageIO;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.sound.sampled.DataLine;
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -28,7 +24,7 @@ import javax.swing.JPanel;
 public class GameFrame extends JFrame {
 	
 	/**
-	 * Das ContentPane (das tats�chliche Grafikmodul, auf welchem gezeichnet wird).
+	 * Das ContentPane (das tatsï¿½chliche Grafikmodul, auf welchem gezeichnet wird).
 	 */
 	public Stage stage = new Stage();
 	
@@ -42,7 +38,7 @@ public class GameFrame extends JFrame {
 	public float currentFps = 0;
 	
 	/**
-	 * Das zugeh�rige Spiel.
+	 * Das zugehï¿½rige Spiel.
 	 */
 	public final Game game;
 	
@@ -58,7 +54,7 @@ public class GameFrame extends JFrame {
 	 * Die Koordinate und der Zeitpunkt des letzten Mausklicks;
 	 * <p>[0] entspricht dabei der x-Koordinate<br>
 	 * [1] entspricht dabei der y-Koordinate<br>
-	 * [2] entspricht dabei dem Zeitpunkt (epoch milliseconds gemäß {@Code System.currentTimeMillis()})
+	 * [2] entspricht dabei dem Zeitpunkt (epoch milliseconds gemÃ¤ÃŸ {@Code System.currentTimeMillis()})
 	 */
 	public long[] lastMouseClick = new long[] {-1, -1, -1};
 	
@@ -69,9 +65,9 @@ public class GameFrame extends JFrame {
 	
 	/**
 	 * Erstellt einen neuen Frame.
-	 * @param game das zugeh�rige Spiel
+	 * @param game das zugehï¿½rige Spiel
 	 * @param width die Fensterweite in Pixeln
-	 * @param height die Fensterh�he in Pixeln
+	 * @param height die Fensterhï¿½he in Pixeln
 	 */
 	public GameFrame(Game game, int width, int height) {
 		this.game = game;
@@ -88,23 +84,17 @@ public class GameFrame extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				TitleScreen titleScreen = new TitleScreen();
-				titleScreen.setVisible(true);
 				game.pause = true;
 				clip.stop();
 				dispose();
+				new Credits();
 			}
 		});
 		
 		lastFrameTime = System.currentTimeMillis();
 		
 		try {
-			File soundFile = new File("./rsc/DontFallForBravery.wav");
-			AudioInputStream stream = AudioSystem.getAudioInputStream(soundFile);
-			DataLine.Info info = new DataLine.Info(Clip.class, stream.getFormat());
-			clip = (Clip)AudioSystem.getLine(info);
-			clip.open(stream);
-			clip.loop(Clip.LOOP_CONTINUOUSLY);
+			clip = SoundManager.play(new File("./rsc/DontFallForBravery.wav"), Clip.LOOP_CONTINUOUSLY);
 		} catch(Exception e) { e.printStackTrace(); }
 		
 		Executors.newScheduledThreadPool(1).scheduleAtFixedRate(new Runnable() {
@@ -133,16 +123,9 @@ public class GameFrame extends JFrame {
 		}
 		for(Entity e : game.entities) {
 			float groundHeight = (int)(e.x-e.hitBoxWidth/2d/game.blockSize) == (int)(e.x+e.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(e.x) : Math.max(game.getGroundHeight(e.x-e.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(e.x+e.hitBoxWidth/2d/game.blockSize));
-			if(e.y + e.vy < groundHeight) e.vy = groundHeight - e.y;
+			if(e.y + e.vy < groundHeight && !(e instanceof Mob && e.hp <= 0)) e.vy = groundHeight - e.y;
 			e.y += e.vy;
 			e.vy += gravity;
-		}
-		for(Entity e : game.entities) {
-			float groundHeight = (int)(e.x-e.hitBoxWidth/2d/game.blockSize) == (int)(e.x+e.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(e.x) : Math.max(game.getGroundHeight(e.x-e.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(e.x+e.hitBoxWidth/2d/game.blockSize));
-			if(e.vx != 0) {
-				e.vx += -Math.copySign(groundResistance, e.vx);
-				if(Math.abs(e.vx) < Math.abs(groundResistance)) e.vx = 0;
-			}
 		}
 		if(Controls.dDown) {
 			if(game.getGroundHeight(player.x+1) > player.y && (int)(player.x + player.movementSpeed + player.hitBoxWidth/2d/game.blockSize) != (int)(player.x)) {
@@ -151,6 +134,7 @@ public class GameFrame extends JFrame {
 				player.vx = 0;
 			}
 			else player.x += player.movementSpeed;
+			//try { GameFrame.play(new File("./rsc/steps.wav"), 1); } catch(Exception e) {}
 		}
 		if(Controls.aDown) {
 			if(game.getGroundHeight(player.x-1) > player.y && (int)(player.x - player.movementSpeed - player.hitBoxWidth/2d/game.blockSize) != (int)(player.x)) {
@@ -159,6 +143,7 @@ public class GameFrame extends JFrame {
 				player.vx = 0;
 			}
 			else player.x -= player.movementSpeed;
+			//try { GameFrame.play(new File("./rsc/steps.wav"), 1); } catch(Exception e) {}
 		}
 		for(Entity e : game.entities) {
 			if(e.vx > 0) {
@@ -177,13 +162,21 @@ public class GameFrame extends JFrame {
 				else e.x += e.vx;
 			}
 		} ticks++;
-		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 10000 && game.entities.size()-1 < 0.075 * (ticks * 1d/fps) + 4) {
-			int amount = (int) (0.075 * (ticks * 1d/fps) - game.entities.size() + 3);
+		for(Entity e : game.entities) {
+			float groundHeight = (int)(e.x-e.hitBoxWidth/2d/game.blockSize) == (int)(e.x+e.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(e.x) : Math.max(game.getGroundHeight(e.x-e.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(e.x+e.hitBoxWidth/2d/game.blockSize));
+			if(e.vx != 0) {
+				e.vx += -Math.copySign(groundResistance, e.vx);
+				if(Math.abs(e.vx) < Math.abs(groundResistance)) e.vx += -e.vx/70f;
+			}
+		}
+		double ratio = game.difficulty == 1 ? 0.03 : game.difficulty == 2 ? 0.075 : 0.15;
+		if(System.currentTimeMillis() - game.lastMobWaveSpawned > 15000 / game.difficulty && game.entities.size()-1 < ratio * (ticks * 1d/fps) + 4) {
+			int amount = (int) (ratio * (ticks * 1d/fps) - game.entities.size() + 3);
 			for(int i = 0; i<amount; i++) {
 				try {
 					float x = player.x - getWidth()/2/game.blockSize + (float) ((double)getWidth()/(double)game.blockSize * Math.random());
 					if(Math.abs(player.x - x) < 4) x += Math.random() > 0.5 ? 4 : -4;
-					Mob mob = new Mob(x, game.maxWorldHeight + 4, 30, 8, 1.2f, game.standardMobImageSet);
+					Mob mob = new Mob(x, game.maxWorldHeight + 4, 30, 4, 1.2f, game.standardMobImageSet);
 					game.entities.add(mob);
 					System.out.println("At: " + x);
 				} catch(Exception e) { e.printStackTrace(); }
@@ -192,7 +185,7 @@ public class GameFrame extends JFrame {
 			System.out.println("New wave spawned: " + amount);
 		}
 		for(Entity e : game.entities) {
-			if(e instanceof Mob) {
+			if(e instanceof Mob && e.hp > 0) {
 				Player nearest = game.player;
 				for(Entity p : game.entities) {
 					if(p instanceof Player) {
@@ -200,7 +193,8 @@ public class GameFrame extends JFrame {
 					}
 				}
 				
-				e.vx = nearest.x < e.x ? -e.movementSpeed : e.movementSpeed;
+				e.vx += nearest.x < e.x ? -Math.min(e.movementSpeed/10f, e.movementSpeed > e.vx ? e.movementSpeed-e.vx : 0) : Math.min(e.movementSpeed/10f, e.movementSpeed > e.vx ? e.movementSpeed-e.vx : 0);
+				System.out.println((e.movementSpeed/10f) + ", " + e.vx);
 				if(e.y > game.maxWorldHeight + 1.5) e.vx = 0;
 				if(Math.abs(nearest.x - e.x) < Math.max(Math.random()* 2, 0.5)) {
 					e.vx = 0;
@@ -209,9 +203,20 @@ public class GameFrame extends JFrame {
 			}
 		}
 		if(player != null && player.hp <= 0) {
+			if(!game.pause) {
+				game.sound.playPlayerDiesSounds();
+			}
 			game.pause = true;
 			game.entities.remove(player);
 		}
+		ArrayList<Entity> doomed = new ArrayList<>();
+		for(Entity e : game.entities) {
+			if(e != game.player && e.y < 0) {
+				doomed.add(e);
+				if(e == game.player.lastEntityHit) game.player.kills++;
+				game.sound.playMobDiesSounds();
+			}
+		} game.entities.removeAll(doomed);
 	}
 	
 	/**
@@ -262,7 +267,8 @@ public class GameFrame extends JFrame {
 					Image img = null;
 					EntityImageSet imageSet = game.player.imageSet;
 					float groundHeight = (int)(game.player.x-game.player.hitBoxWidth/2d/game.blockSize) == (int)(game.player.x+game.player.hitBoxWidth/2d/game.blockSize) ? game.getGroundHeight(game.player.x) : Math.max(game.getGroundHeight(game.player.x-game.player.hitBoxWidth/2d/game.blockSize), game.getGroundHeight(game.player.x+game.player.hitBoxWidth/2d/game.blockSize));
-					if(Controls.aDown) img = ticks % 16 < 8 ? imageSet.leftOne : imageSet.leftTwo;
+					if(System.currentTimeMillis()-game.player.cooldownSet.lastTimeHit < 100) img = game.player.lastEntityHit.x < game.player.x ? imageSet.hitFlipped : imageSet.hit;
+					else if(Controls.aDown) img = ticks % 16 < 8 ? imageSet.leftOne : imageSet.leftTwo;
 					else if(Controls.dDown) img = ticks % 16 < 8 ? imageSet.rightOne : imageSet.rightTwo;
 					else if(game.player.y > groundHeight || Controls.spaceDown || Controls.wDown) img = imageSet.jump;
 					else img = imageSet.defaultImage;
@@ -309,17 +315,6 @@ public class GameFrame extends JFrame {
 				} catch(Exception e) {} // Ignored
 				
 				// HP
-				/*try {
-					Image heartImage = ImageIO.read(new File("./rsc/heart.png")).getScaledInstance(24, 24, Image.SCALE_FAST);
-					double heartsPerLine = 10d;
-					for(int y = 0; y<(int)(game.player.hp/heartsPerLine)+1; y++) {
-						for(int i = 0; i<Math.min(game.player.hp - y*heartsPerLine, heartsPerLine); i++) {
-							int xPos = (int)(getWidth()/2d + Math.min(game.player.hp - y*heartsPerLine, heartsPerLine)/2d * (double)heartImage.getWidth(null) - i*heartImage.getWidth(null));
-							int yPos = 10 * (y+1);
-							g2.drawImage(heartImage, xPos, yPos, null);
-						}
-					}
-				} catch(Exception e) { e.printStackTrace(); } // Ignored*/
 				g2.setColor(Color.RED);
 				g2.fillRect(0, getHeight()-10, getWidth(), getHeight());
 				g2.setColor(Color.GREEN);
@@ -336,7 +331,7 @@ public class GameFrame extends JFrame {
 						String infText = "you died lmao";
 						g2.drawString(infText, getWidth()/2-g2.getFontMetrics().stringWidth(infText)/2, 100);
 						g2.setFont(new Font(g2.getFont().getName(), Font.BOLD, 16));
-						String[] subTexts = new String[] {"you survived that long: " + (int)((double)ticks * 1d/fps) + " seconds", "wow", "", "you may close this window now and try better", "", "", "",
+						String[] subTexts = new String[] {"you survived that long: " + (int)((double)ticks * 1d/fps) + " seconds", "wow", "", "you may close this window now and try better", "", "", "Difficulty: " + game.difficulty, "",
 								"Statistics",
 								"Entities killed (by you): " + game.player.kills,
 								"Blocks generated: " + game.blocks.size(),

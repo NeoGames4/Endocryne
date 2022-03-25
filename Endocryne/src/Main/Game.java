@@ -31,6 +31,11 @@ public class Game {
 	public final GameFrame frame = new GameFrame(this, (int)(Toolkit.getDefaultToolkit().getScreenSize().width/1.2), (int)(Toolkit.getDefaultToolkit().getScreenSize().height/1.2));
 	
 	/**
+	 * Zugehöriger Sound-Manager.
+	 */
+	public static SoundManager sound;
+	
+	/**
 	 * Ob sich das Spiel im Pausenmodus befindet.
 	 */
 	public boolean pause = false;
@@ -71,6 +76,14 @@ public class Game {
 	 * Die Anzahl an geladenen Blï¿½cken mit x > 0.
 	 */
 	int maxBlocksX = 0;
+	
+	/**
+	 * Der Schwierigkeitsgrad von 1 bis 3 (inklusive), wofür gilt:
+	 * <p>1 - Leicht
+	 * <p>2 - Medium
+	 * <p>3 - Schwer
+	 */
+	public int difficulty = Options.difficulty;
 	
 	/**
 	 * Der Zeitpunkt, zu welchem das letzte Mal eine Welle an Mobs erschaffen worden ist.
@@ -130,12 +143,12 @@ public class Game {
 				angle += angle < 0 ? 360 : 0;
 				System.out.println("x: " + (player.range * Math.cos(Math.toRadians(angle))) + ", y: " + (player.range * Math.sin(Math.toRadians(angle))) + ", " + angle);
 				for(Entity entity : entities) {
-					if(entity == player) continue;
-					float pX = player.x + player.hitBoxWidth/2/blockSize, pY = player.y;
-					float eX = entity.x + entity.hitBoxWidth/2/blockSize, eY = entity.y;
-					if((pX - eX > 0 && pX - eX <= player.range * Math.cos(Math.toRadians(angle))) || (pX - eX < 0 && pX - eX >= player.range * Math.cos(Math.toRadians(angle)))) {
+					if(entity == player || entity.hp <= 0) continue;
+					float pX = player.x, pY = player.y;
+					float eX = entity.x, eY = entity.y;
+					if((pX - eX > 0 && pX - eX <= player.range * Math.cos(Math.toRadians(angle - 180))) || (pX - eX < 0 && pX - eX >= player.range * Math.cos(Math.toRadians(angle - 180)))) {
+						System.out.println("PUNCHED");
 						player.attack(entity);
-						break;
 					}
 				}
 			}

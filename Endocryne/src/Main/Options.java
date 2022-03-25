@@ -15,17 +15,18 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class Options extends JFrame {
 
-	Image2 image4;
+	static Image2 image4;
 	public static Image skin;
+	public static int difficulty = 2;
 
 	public class ContentPane extends JPanel {
 
@@ -59,7 +60,7 @@ public class Options extends JFrame {
 			contentPane.setLayout(null);
 			int height = 0;
 			if (skin == null) {
-				skin = ImageIO.read(new File("./rsc/mob.png"));
+				skin = ImageIO.read(new File("./rsc/player.png"));
 			}
 
 			Image image = ImageIO.read(new File("./rsc/buttonBack1.png"));
@@ -133,8 +134,6 @@ public class Options extends JFrame {
 			btnBack.setBackground(null);
 			btnBack.setForeground(Color.white);
 			btnBack.setOpaque(true);
-			btnBack.addActionListener(e -> {
-			});
 			contentPane.add(btnBack);
 			repaint();
 
@@ -197,7 +196,14 @@ public class Options extends JFrame {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					System.out.println("Diese Option ist aktuell noch nicht möglich.");
+					
+					try {
+						skin = ImageIO.read(new File("./rsc/mob.png"));	
+						dispose();
+						Options options = new Options();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
 				}
 
 			});
@@ -269,30 +275,28 @@ public class Options extends JFrame {
 
 			btnUploadSkin.addActionListener(new ActionListener() {
 
-				@Override
+				/**
+				 * @Override public void actionPerformed(ActionEvent e) { JFileChooser chooser =
+				 *           new JFileChooser(); FileNameExtensionFilter filter = new
+				 *           FileNameExtensionFilter("*.png", "png");
+				 *           chooser.setFileFilter(filter); // Dialog zum Oeffnen von Dateien
+				 *           anzeigen int rueckgabeWert = chooser.showOpenDialog(null);
+				 * 
+				 *           if (rueckgabeWert == JFileChooser.APPROVE_OPTION) { // Ausgabe der
+				 *           ausgewaehlten Datei System.out.println("Die zu öffnende Datei ist:
+				 *           " + chooser.getSelectedFile().getName()); try { skin =
+				 *           ImageIO.read(chooser.getSelectedFile()); image4.image = skin;
+				 *           image4.repaint(); } catch (IOException e1) { // TODO Auto-generated
+				 *           catch block e1.printStackTrace(); }
+				 */
 				public void actionPerformed(ActionEvent e) {
-					JFileChooser chooser = new JFileChooser();
-					FileNameExtensionFilter filter = new FileNameExtensionFilter("*.png", "png");
-					chooser.setFileFilter(filter);
-					// Dialog zum Oeffnen von Dateien anzeigen
-					int rueckgabeWert = chooser.showOpenDialog(null);
 
-					/* Abfrage, ob auf "Öffnen" geklickt wurde */
-					if (rueckgabeWert == JFileChooser.APPROVE_OPTION) {
-						// Ausgabe der ausgewaehlten Datei
-						System.out.println("Die zu öffnende Datei ist: " + chooser.getSelectedFile().getName());
-						try {
-							skin = ImageIO.read(chooser.getSelectedFile());
-							image4.image = skin;
-							image4.repaint();
-						} catch (IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-					}
+					SelectSkins selectskin = new SelectSkins();
+					dispose();
 				}
+			}
 
-			});
+			);
 			btnUploadSkin.setBounds(getWidth() / 2 - image2.getWidth(null) / 2,
 					20 + 10 * 2 + image2.getHeight(null) * 2, image2.getWidth(null), image2.getHeight(null));
 			height = 10 * 2 + image2.getHeight(null) * 2;
@@ -313,6 +317,7 @@ public class Options extends JFrame {
 			repaint();
 
 			JCheckBox debug = new JCheckBox("Debug");
+			debug.setSelected(Launcher.DEBUG);
 			debug.setBounds(-35 + getWidth() / 2, height + 250, 70, 16);
 			debug.setBackground(null);
 			debug.setOpaque(false);
@@ -341,9 +346,9 @@ public class Options extends JFrame {
 			contentPane.add(diffJS);
 
 			// Mindestwert wird gesetzt
-			diffJS.setMinimum(0);
+			diffJS.setMinimum(1);
 			// Maximalwert wird gesetzt
-			diffJS.setMaximum(2);
+			diffJS.setMaximum(3);
 
 			// Die Abstände zwischen den
 			// Teilmarkierungen werden festgelegt
@@ -360,9 +365,20 @@ public class Options extends JFrame {
 			diffJS.setPaintLabels(true);
 
 			// Schiebebalken wird auf den Wert 9 gesetzt
-			diffJS.setValue(1);
+			diffJS.setValue(difficulty);
 
 			diffJS.setVisible(true);
+			
+			diffJS.addChangeListener(new ChangeListener() {	
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					if (!diffJS.getValueIsAdjusting()) {
+			             difficulty = (int)diffJS.getValue();
+			        }
+				}
+			});
+			repaint();
+			
 			repaint();
 
 			JLabel difficulty = new JLabel("Difficulty");

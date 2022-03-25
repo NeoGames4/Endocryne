@@ -1,5 +1,7 @@
 package Main;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -49,25 +51,23 @@ public class TitleScreen extends JFrame {
 		drawNewGameButton();
 		drawLoadGameButton();
 		drawOptionsButton();
+		drawVersion();
 		repaint();
-//		drawTitle();
 
 	}
+	
+	public void drawVersion() {
+		
+		JLabel version = new JLabel("© All rights reserved. Endocryne v1.0 PRE-ALPHA");
 
-/*	public void drawTitle() {
-		Image image3 = null;
-		try {
-			image3 = ImageIO.read(new File("./rsc/Title.png"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		Image2 image4 = new Image2(image3);
-		image4.setBounds(getWidth() / 2 - image3.getWidth(null) / 2, image3.getHeight(null) / 2, image3.getWidth(null),
-				image3.getHeight(null));
-		contentPane.add(image4);
+	    version.setBounds(7, contentPane.getHeight()-7-version.getFont().getSize(), version.getFontMetrics(version.getFont()).stringWidth(version.getText()), version.getFont().getSize() );
+		version.setForeground(new Color(255, 255, 255));
+		version.setFont(new Font("Palatino Linotype", Font.BOLD, 12));
+		contentPane.add(version);
+		repaint();
+		
 	}
-*/
+	
 	public void drawNewGameButton() {
 
 		try {
@@ -79,6 +79,9 @@ public class TitleScreen extends JFrame {
 			btnNewGame.setOpaque(true);
 			btnNewGame.addActionListener(e -> {
 				Game game = new Game();
+				try {
+					game.sound = new SoundManager();
+				} catch(Exception exception) { exception.printStackTrace(); }
 				dispose();
 			});
 			contentPane.add(btnNewGame);
